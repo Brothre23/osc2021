@@ -1,7 +1,5 @@
 # NCTU Operating Capstone 2021
 
-## LAB 0
-
 ## Author
 
 | Student ID | GitHub Account | Name  | Email                       |
