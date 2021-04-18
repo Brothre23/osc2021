@@ -1,4 +1,4 @@
-#include "sys_regs.h"
+#include "sysregs.h"
 
 .section ".text.boot"
 
@@ -19,7 +19,7 @@ el2_entry:
     msr     spsr_el2, x1
 
     # init sp for EL1
-    mov     x0, 0x70000
+    mov     x0, 0x80000
     msr     sp_el1, x0
 
     adr     x1, el1_entry                       // eret return address

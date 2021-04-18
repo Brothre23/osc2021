@@ -1,4 +1,4 @@
-#include "sys_regs.h"
+#include "sysregs.h"
 
 // save general registers to stack
 .macro save_regs
