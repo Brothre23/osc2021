@@ -42,8 +42,8 @@
 
 #define CORE0_TIMER_IRQ_CTRL 0x40000040
 
-.global core_timer_enable
-core_timer_enable:
+.global sys_enable_core_timer
+sys_enable_core_timer:
     mov x0, 1
     msr cntp_ctl_el0, x0            // enable
 
@@ -57,8 +57,8 @@ core_timer_enable:
     str w0, [x1]                    // unmask timer 
     ret
 
-.global core_timer_disable
-core_timer_disable:
+.global sys_disable_core_timer
+sys_disable_core_timer:
     mrs x0, cntp_ctl_el0
     mov x1, 1
     eor x1, x1, x1                  // not x1
@@ -83,3 +83,4 @@ timer_handler:
     
     load_regs
     eret
+    

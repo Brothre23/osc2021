@@ -3,6 +3,7 @@
 #include "mm.h"
 #include "uart.h"
 #include "string.h"
+#include "exception.h"
 
 struct list_head user_timer_list;
 extern int user_timer;
@@ -35,24 +36,16 @@ void print_timestamp(unsigned long cntpct, unsigned long cntfrq)
 void init_timer()
 {
     list_init_head(&user_timer_list);
-    asm volatile(
-        "msr daifclr, 2     \n\t"
-    );
+    enable_irq();
 }
 
-void set_new_timeout()
+void sys_set_timeout(struct trapframe* tf)
 {
-    int *second;
-    char *message;
-
-    asm volatile(
-        "mov %0, x10 \n\t"
-        "mov %1, x11 \n\t"
-        : "=r"(second), "=r"(message)
-        :);
+    int second = tf->x[0];
+    char *message = (char *)tf->x[1];
 
     struct user_timer *new_timer = km_allocation(sizeof(struct user_timer));
-    new_timer->trigger_time = *second;
+    new_timer->trigger_time = second;
     strcpy(message, new_timer->message);
 
     unsigned long frequency;
@@ -166,7 +159,7 @@ void handle_due_timeout()
     else
     {
         user_timer = 0;
-        core_timer_disable();
+        sys_disable_core_timer();
     }
 
     return;

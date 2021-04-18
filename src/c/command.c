@@ -1,8 +1,8 @@
 #include "uart.h"
-#include "string.h"
 #include "cpio.h"
 #include "printf.h"
-#include "mm.h"
+#include "syscall.h"
+#include "string.h"
 
 int user_timer = 0;
 
@@ -86,12 +86,12 @@ void command_cpio()
 
 void command_timer_on()
 {
-    asm volatile("svc 1");
+    enable_core_timer();
 }
 
 void command_timer_off()
 {
-    asm volatile("svc 2");
+    disable_core_timer();
 }
 
 void command_set_timeout()
@@ -107,13 +107,7 @@ void command_set_timeout()
     printf("message: ");
     uart_getline(message);
 
-    asm volatile(
-        "mov x10, %0    \n\t"
-        "mov x11, %1    \n\t"
-        :
-        : "r"(&second), "r"(message));
-
-    asm volatile("svc 3");
+    set_timeout(second, message);
 }
 
 void command_not_found(char *s)

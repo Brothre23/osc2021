@@ -1,8 +1,9 @@
 #include "sysregs.h"
 
 // save general registers to stack
-.macro save_regs
-    sub sp, sp, 32 * 8
+.macro kernel_entry
+    sub sp, sp, 32 * 8 + 16
+
     stp x0, x1, [sp ,16 * 0]
     stp x2, x3, [sp ,16 * 1]
     stp x4, x5, [sp ,16 * 2]
@@ -18,11 +19,24 @@
     stp x24, x25, [sp ,16 * 12]
     stp x26, x27, [sp ,16 * 13]
     stp x28, x29, [sp ,16 * 14]
-    str x30, [sp, 16 * 15]
+
+    mrs x19, sp_el0
+    mrs x20, elr_el1
+    mrs x21, spsr_el1
+
+    stp x30, x19, [sp, #16 * 15]
+    stp x20, x21, [sp, #16 * 16]
 .endm
 
 // load general registers from stack
-.macro load_regs
+.macro kernel_exit
+    ldp x19, x20, [sp, #16 * 16]
+    ldp x30, x21, [sp, #16 * 15]
+
+    msr spsr_el1, x20
+    msr elr_el1, x19
+    msr sp_el0, x21
+
     ldp x0, x1, [sp ,16 * 0]
     ldp x2, x3, [sp ,16 * 1]
     ldp x4, x5, [sp ,16 * 2]
@@ -38,8 +52,8 @@
     ldp x24, x25, [sp ,16 * 12]
     ldp x26, x27, [sp ,16 * 13]
     ldp x28, x29, [sp ,16 * 14]
-    ldr x30, [sp, 16 * 15]
-    add sp, sp, 32 * 8
+
+    add sp, sp, 32 * 8 + 16
 .endm
 
 .align  11
@@ -87,24 +101,35 @@ exception_vector_table:
     b invalid_handler       // SError
 
 svc_handler:
-    save_regs
+    kernel_entry
 
     mrs x0, spsr_el1
     mrs x1, elr_el1
     mrs x2, esr_el1
+    mov x3, sp
     bl  svc_router
 
-    load_regs
+    kernel_exit
     eret
 
 invalid_hang:
 	b invalid_hang
 
 invalid_handler:
-    save_regs
+    kernel_entry
     bl  print_invalid_entry_message
     b   invalid_hang
 
 .global return_to_el1
 return_to_el1:
-    svc 4
+    svc 1
+
+.globl enable_irq
+enable_irq:
+    msr    daifclr, #2 
+    ret
+
+.globl disable_irq
+disable_irq:
+    msr	   daifset, #2
+    ret
