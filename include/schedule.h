@@ -36,12 +36,15 @@ struct task_struct {
 
 /* variables defined in schedule.c */
 extern struct task_struct *task_pool[TASK_POOL_SIZE];
-extern char kstack_pool[TASK_POOL_SIZE][KSTACK_SIZE];
-extern char ustack_pool[TASK_POOL_SIZE][USTACK_SIZE];
+extern void* kstack_pool[TASK_POOL_SIZE];
+extern void* ustack_pool[TASK_POOL_SIZE];
 
 /* functions defined in schedule.S */
 unsigned int get_current_task();
 void update_current_task(unsigned int pid);
 void context_switch(struct cpu_context* prev, struct cpu_context* next);
+
+/* functions defined in schedule.c */
+void init_schedule();
 
 #endif
