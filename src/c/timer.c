@@ -1,9 +1,9 @@
 #include "timer.h"
 #include "printf.h"
 #include "mm.h"
-#include "uart.h"
 #include "string.h"
 #include "exception.h"
+#include "syscall_internal.h"
 
 struct list_head user_timer_list;
 extern int user_timer;

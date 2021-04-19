@@ -137,6 +137,7 @@ void cpio_find_file(char file_name_to_find[])
     printf("\n");
 }
 
+/*
 void cpio_run_executable(char executable_name[])
 {
     char *ramfs = (char *)0x8000000;
@@ -193,3 +194,4 @@ void cpio_run_executable(char executable_name[])
         "ldr lr, =return_to_el1 \n\t"
         "eret                   \n\t");
 }
+*/

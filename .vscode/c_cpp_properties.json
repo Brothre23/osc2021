@@ -3,7 +3,8 @@
         {
             "name": "Raspberry Pi",
             "includePath": [
-                "${workspaceFolder}/include/"
+                "${workspaceFolder}/include/",
+                "${workspaceFolder}/lib/"
             ]
         }
     ],

@@ -40,7 +40,7 @@ void command_cpio()
     printf("Valid Option:\n");
     printf("\t1:\t\tGet the file list.\n");
     printf("\t2:\t\tSearch for a specific file.\n");
-    printf("\t3:\t\tRun an executable.\n");
+    // printf("\t3:\t\tRun an executable.\n");
     printf("\n");
     printf("option: ");
 
@@ -67,6 +67,7 @@ void command_cpio()
 
     break;
 
+    /*
     case '3':
     {
         char file_name[100];
@@ -78,6 +79,7 @@ void command_cpio()
     }
 
     break;
+    */
 
     default:
         break;
