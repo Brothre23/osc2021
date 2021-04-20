@@ -20,6 +20,8 @@ void sys_enable_core_timer();
 void sys_disable_core_timer();
 /* functions defined in timer.c */
 void sys_set_timeout(struct trapframe *tf);
+/* functions defined in schedule.c */
+void sys_exit();
 
 #endif
 

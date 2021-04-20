@@ -1,18 +1,34 @@
 #include "schedule.h"
 #include "mm.h"
+#include "printf.h"
+#include "syscall_internal.h"
 
 struct task_struct *task_pool[TASK_POOL_SIZE];
-void *kstack_pool[KSTACK_SIZE];
-void *ustack_pool[USTACK_SIZE];
+void *kstack_pool[TASK_POOL_SIZE];
+void *ustack_pool[TASK_POOL_SIZE];
 
-int privilege_task_create(void (*function)()) 
+void delay(unsigned int count)
 {
-    struct task_struct *new_task;
-    unsigned int pid;
+    while(count--);
+}
 
-    for (int i = 0; i < TASK_POOL_SIZE; i++) 
+void sys_exit()
+{
+    unsigned int current_pid = get_current_task();
+    struct task_struct *current = task_pool[current_pid];
+
+    current->state = ZOMBIE;
+    schedule();
+}
+
+int thread_create(void (*function)())
+{
+    struct task_struct *new_task = NULL;
+    int pid = -1;
+
+    for (int i = 0; i < TASK_POOL_SIZE; i++)
     {
-        if (task_pool[i] == NULL) 
+        if (task_pool[i] == NULL)
         {
             new_task = km_allocation(sizeof(struct task_struct));
             pid = i;
@@ -20,25 +36,31 @@ int privilege_task_create(void (*function)())
         }
     }
 
+    if (pid == -1)
+    {
+        printf("Failed to create a new task!\n");
+        return -1;
+    }
+
     new_task->state = RUNNING;
     new_task->pid = pid;
     new_task->context.lr = (unsigned long)function;
-    new_task->context.sp = km_allocation(KSTACK_SIZE) + (KSTACK_SIZE - 16);     // to ensure 16-bytes alignment
-    new_task->context.fp = new_task->context.sp - (KSTACK_SIZE - 16);           // fp points to the end of a stack
+    new_task->context.sp = (unsigned long)km_allocation(KSTACK_SIZE) + (KSTACK_SIZE - 16);  // to ensure 16-byte alignment
+    new_task->context.fp = new_task->context.sp - (KSTACK_SIZE - 16);                       // fp points to the end of a stack
 
     task_pool[pid] = new_task;
-    kstack_pool[pid] = new_task->context.sp;
+    kstack_pool[pid] = (void *)new_task->context.fp;
 
     return pid;
 }
 
-void kill_zombie() 
+void kill_zombie()
 {
-    while (1) 
+    while (1)
     {
-        for (int i = 0; i < TASK_POOL_SIZE; i++) 
+        for (int i = 0; i < TASK_POOL_SIZE; i++)
         {
-            if (task_pool[i]->state == ZOMBIE) 
+            if (task_pool[i]->state == ZOMBIE)
             {
                 printf("process ID: %d killed!\n", i);
                 task_pool[i]->state = EXIT;
@@ -55,9 +77,29 @@ void kill_zombie()
     }
 }
 
+void schedule()
+{
+    int prev_pid = get_current_task();
+    int next_pid = prev_pid;
+
+    struct task_struct *prev = task_pool[prev_pid];
+    struct task_struct *next = task_pool[(++next_pid) % TASK_POOL_SIZE];
+    
+    while (next == NULL || next->state != RUNNING)
+    {
+        next_pid = (++next_pid) % TASK_POOL_SIZE;
+        next = task_pool[next_pid];
+    }
+
+    update_current_task(next_pid);
+    context_switch(&prev->context, &next->context);
+}
+
 void init_schedule()
 {
     for (int i = 0; i < TASK_POOL_SIZE; i++)
         task_pool[i] = NULL;
-    
+
+    int pid = thread_create(kill_zombie);
+    update_current_task(pid);
 }
