@@ -4,6 +4,7 @@
 #define TASK_POOL_SIZE 64
 #define KSTACK_SIZE 4096
 #define USTACK_SIZE 4096
+#define TASK_QUOTA 5
 
 struct cpu_context
 {
@@ -33,7 +34,9 @@ struct task_struct
 {
     int pid;
     enum task_state state;
-    int exit_status;
+    // int exit_status;
+    int need_schedule;
+    int quota;
     struct cpu_context context;
 };
 
@@ -41,6 +44,7 @@ struct task_struct
 extern struct task_struct *task_pool[TASK_POOL_SIZE];
 extern void *kstack_pool[TASK_POOL_SIZE];
 extern void *ustack_pool[TASK_POOL_SIZE];
+extern unsigned int current_pid;
 
 /* functions defined in schedule.S */
 unsigned int get_current_task();
@@ -50,8 +54,9 @@ void start_context(struct cpu_context *current);
 
 /* functions defined in schedule.c */
 void delay(unsigned int count);
-void init_schedule();
 int thread_create(void (*function)());
 void schedule();
+void init_schedule();
+void task_preemption();
 
 #endif

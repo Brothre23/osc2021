@@ -2,8 +2,8 @@
 
 // save general registers to stack
 .macro kernel_entry
-    // sub sp, sp, 32 * 8 + 16
-    sub sp, sp, 31 * 8
+    sub sp, sp, 34 * 8
+    // sub sp, sp, 31 * 8
 
     stp x0, x1, [sp, 16 * 0]
     stp x2, x3, [sp, 16 * 1]
@@ -20,27 +20,26 @@
     stp x24, x25, [sp, 16 * 12]
     stp x26, x27, [sp, 16 * 13]
     stp x28, x29, [sp, 16 * 14]
-    str x30, [sp, 16 * 15]
-/*
+    // str x30, [sp, 16 * 15]
+
     mrs x19, sp_el0
     mrs x20, elr_el1
     mrs x21, spsr_el1
 
-    stp x30, x19, [sp, #16 * 15]
-    stp x20, x21, [sp, #16 * 16]
-*/
+    stp x30, x19, [sp, 16 * 15]
+    stp x20, x21, [sp, 16 * 16]
+
 .endm
 
 // load general registers from stack
 .macro kernel_exit
-/*
-    ldp x19, x20, [sp, #16 * 16]
-    ldp x30, x21, [sp, #16 * 15]
+
+    ldp x19, x20, [sp, 16 * 16]
+    ldp x30, x21, [sp, 16 * 15]
 
     msr spsr_el1, x20
     msr elr_el1, x19
     msr sp_el0, x21
-*/
 
     ldp x0, x1, [sp, 16 * 0]
     ldp x2, x3, [sp, 16 * 1]
@@ -57,10 +56,10 @@
     ldp x24, x25, [sp, 16 * 12]
     ldp x26, x27, [sp, 16 * 13]
     ldp x28, x29, [sp, 16 * 14]
-    ldr x30, [sp, 16 * 15]
+    // ldr x30, [sp, 16 * 15]
 
-    add sp, sp, 31 * 8
-    // add sp, sp, 32 * 8 + 16
+    // add sp, sp, 31 * 8
+    add sp, sp, 34 * 8 
 .endm
 
 .align  11
@@ -91,7 +90,7 @@ exception_vector_table:
     .align 7
     b svc_handler           // Synchronous
     .align 7
-    b invalid_handler       // IRQ
+    b timer_handler         // IRQ
     .align 7 
     b invalid_handler       // FIQ
     .align 7 
@@ -109,13 +108,22 @@ exception_vector_table:
 
 svc_handler:
     kernel_entry
-
     mrs x0, spsr_el1
     mrs x1, elr_el1
     mrs x2, esr_el1
     mov x3, sp
     bl  svc_router
+    // bl  task_preemption
+    kernel_exit
+    eret
 
+.global timer_handler
+timer_handler:
+    kernel_entry
+    mrs x0, cntpct_el0
+    mrs x1, cntfrq_el0
+    bl  timer_router
+    // bl  task_preemption
     kernel_exit
     eret
 
@@ -127,9 +135,11 @@ invalid_handler:
     bl  print_invalid_entry_message
     b   invalid_hang
 
+/*
 .global return_to_el1
 return_to_el1:
     svc 1
+*/
 
 .globl enable_irq
 enable_irq:

@@ -4,6 +4,7 @@
 #include "mm.h"
 #include "timer.h"
 #include "schedule.h"
+#include "syscall.h"
 
 void foo()
 {
@@ -17,21 +18,23 @@ void foo()
 
 int main()
 {
+    // printf("Hello World!\n\n");
+    // shell_start();
+
     init_uart();
     init_printf(0, putc);
     init_memory();
-    init_timer();
     init_schedule();
-
-    // printf("Hello World!\n\n");
-    // shell_start();
+    init_timer();
 
     for (int i = 0; i < 5; i++)
         thread_create(foo);
 
-    unsigned int current_pid = get_current_task();
-    struct task_struct *current = task_pool[current_pid];
-    start_context(&current->context);
+    schedule();
+    while (1)
+    {
+
+    }
 
     return 0;
 }

@@ -4,6 +4,7 @@
 #include "string.h"
 #include "exception.h"
 #include "syscall.h"
+#include "schedule.h"
 
 struct list_head user_timer_list;
 extern int user_timer;
@@ -21,6 +22,28 @@ void timer_router(unsigned long cntpct, unsigned long cntfrq)
             "mul x0, x0, x1         \n\t"
             "msr cntp_tval_el0, x0  \n\t"
         );
+
+       /*
+        disable_irq();
+
+        int pid = get_current_task();
+        struct task_struct *current = task_pool[pid];
+
+        current->quota--;
+        // printf("%d\n", current->quota);
+        if (current->quota <= 0)
+        {
+            printf("pid:%d quota used up\n", pid);
+            current->need_schedule = 1;
+        }
+
+        asm volatile(
+            "mrs x0, cntfrq_el0     \n\t"
+            "msr cntp_tval_el0, x0  \n\t"
+        );
+
+        enable_irq();
+        */
     }
 
     return;
@@ -36,7 +59,8 @@ void print_timestamp(unsigned long cntpct, unsigned long cntfrq)
 void init_timer()
 {
     list_init_head(&user_timer_list);
-    enable_irq();
+    // enable_irq();
+    // enable_core_timer();
 }
 
 void sys_set_timeout(struct trapframe* tf)
