@@ -30,11 +30,8 @@ int main()
     for (int i = 0; i < 5; i++)
         thread_create(foo);
 
-    schedule();
     while (1)
-    {
-
-    }
+        schedule();
 
     return 0;
 }

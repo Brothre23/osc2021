@@ -108,7 +108,7 @@ void schedule()
 
     while (next == NULL || next->state != RUNNING)
     {
-        next_pid = (++next_pid) % TASK_POOL_SIZE;
+        next_pid = (next_pid + 1) % TASK_POOL_SIZE;
         next = task_pool[next_pid];
     }
 
