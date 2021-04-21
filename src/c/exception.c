@@ -1,7 +1,7 @@
 #include "printf.h"
 #include "timer.h"
 #include "exception.h"
-#include "syscall_internal.h"
+#include "syscall.h"
 
 void svc_router(unsigned long spsr, unsigned long elr, unsigned long esr, struct trapframe *tf);
 void syscall_router(int sys_call_n, struct trapframe *tf);
@@ -55,6 +55,7 @@ void syscall_router(int sys_call_n, struct trapframe* tf)
     switch (sys_call_n)
     {
         case SYS_GETPID:
+            sys_getpid(tf);
             break;
         case SYS_UART_READ:
             break;

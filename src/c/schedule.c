@@ -1,7 +1,7 @@
 #include "schedule.h"
 #include "mm.h"
 #include "printf.h"
-#include "syscall_internal.h"
+#include "exception.h"
 
 struct task_struct *task_pool[TASK_POOL_SIZE];
 void *kstack_pool[TASK_POOL_SIZE];
@@ -10,6 +10,13 @@ void *ustack_pool[TASK_POOL_SIZE];
 void delay(unsigned int count)
 {
     while(count--);
+}
+
+void sys_getpid(struct trapframe *tf)
+{
+    int pid = get_current_task();
+    tf->x[0] = pid;
+    return;
 }
 
 void sys_exit()
@@ -46,10 +53,10 @@ int thread_create(void (*function)())
     new_task->pid = pid;
     new_task->context.lr = (unsigned long)function;
     new_task->context.sp = (unsigned long)km_allocation(KSTACK_SIZE) + (KSTACK_SIZE - 16);  // to ensure 16-byte alignment
-    new_task->context.fp = new_task->context.sp - (KSTACK_SIZE - 16);                       // fp points to the end of a stack
+    new_task->context.fp = new_task->context.sp;                       // fp points to the end of a stack
 
     task_pool[pid] = new_task;
-    kstack_pool[pid] = (void *)new_task->context.fp;
+    kstack_pool[pid] = (void *)new_task->context.sp - (KSTACK_SIZE - 16);
 
     return pid;
 }
@@ -84,7 +91,7 @@ void schedule()
 
     struct task_struct *prev = task_pool[prev_pid];
     struct task_struct *next = task_pool[(++next_pid) % TASK_POOL_SIZE];
-    
+
     while (next == NULL || next->state != RUNNING)
     {
         next_pid = (++next_pid) % TASK_POOL_SIZE;

@@ -1,4 +1,4 @@
-#include "syscall_internal.h"
+#include "syscall.h"
 
 .global getpid
 getpid:

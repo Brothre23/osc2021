@@ -9,7 +9,7 @@ void foo()
 {
     for(int i = 0; i < 10; ++i) 
     {
-        printf("Thread ID: %d %d\n", get_current_task(), i);
+        printf("Thread ID: %d %d\n", getpid(), i);
         delay(1000000);
         schedule();
     }

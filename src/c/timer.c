@@ -3,7 +3,7 @@
 #include "mm.h"
 #include "string.h"
 #include "exception.h"
-#include "syscall_internal.h"
+#include "syscall.h"
 
 struct list_head user_timer_list;
 extern int user_timer;
