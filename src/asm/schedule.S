@@ -35,7 +35,6 @@ start_context:
     
     ret
 
-/*
 .global update_current_task
 update_current_task:
     msr tpidr_el1, x0
@@ -46,4 +45,3 @@ update_current_task:
 get_current_task:
     mrs x0, tpidr_el1
     ret
-*/

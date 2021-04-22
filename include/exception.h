@@ -11,4 +11,6 @@ struct trapframe {
 void enable_irq();
 void disable_irq();
 
+void return_to_user_code();
+
 #endif

@@ -35,6 +35,7 @@ el1_entry:
     ldr     x0, =exception_vector_table         // set up el1 exception table
     msr     vbar_el1, x0
 
+/*
     ldr     x0, =SPSR_EL1_VALUE
     msr     spsr_el1, x0
     adr     x0, el0_entry
@@ -44,6 +45,7 @@ el1_entry:
     eret
 
 el0_entry:
+*/
     // clear bss
     ldr     x1, =_bss_start
     ldr     w2, =_bss_size

@@ -60,6 +60,8 @@
 
     // add sp, sp, 31 * 8
     add sp, sp, 34 * 8 
+
+    eret
 .endm
 
 .align  11
@@ -80,7 +82,7 @@ exception_vector_table:
     .align 7
     b svc_handler           // Synchronous
     .align 7
-    b timer_handler         // IRQ
+    b timer_handler_EL1     // IRQ
     .align 7
     b invalid_handler       // FIQ
     .align 7
@@ -90,7 +92,7 @@ exception_vector_table:
     .align 7
     b svc_handler           // Synchronous
     .align 7
-    b timer_handler         // IRQ
+    b timer_handler_EL0     // IRQ
     .align 7 
     b invalid_handler       // FIQ
     .align 7 
@@ -115,17 +117,21 @@ svc_handler:
     bl  svc_router
     // bl  task_preemption
     kernel_exit
-    eret
 
-.global timer_handler
-timer_handler:
+timer_handler_EL0:
     kernel_entry
     mrs x0, cntpct_el0
     mrs x1, cntfrq_el0
     bl  timer_router
-    // bl  task_preemption
+    bl  task_preemption
     kernel_exit
-    eret
+
+timer_handler_EL1:
+    kernel_entry
+    mrs x0, cntpct_el0
+    mrs x1, cntfrq_el0
+    bl  timer_router
+    kernel_exit
 
 invalid_hang:
 	b invalid_hang
@@ -150,3 +156,7 @@ enable_irq:
 disable_irq:
     msr	   daifset, #2
     ret
+
+.global return_to_user_code
+return_to_user_code:
+    kernel_exit

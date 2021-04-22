@@ -5,14 +5,17 @@
 #include "timer.h"
 #include "schedule.h"
 #include "syscall.h"
+#include "sysregs.h"
 
 void foo()
 {
-    for(int i = 0; i < 10; ++i) 
+    while(1)
     {
-        printf("Thread ID: %d %d\n", getpid(), i);
-        delay(1000000);
-        schedule();
+        for(int i = 0; i < 100000000; i++) 
+        {
+            if ( i % 10000000 == 0)
+                printf("Thread ID: %d %d\n", getpid(), i);
+        }
     }
 }
 
@@ -30,8 +33,11 @@ int main()
     for (int i = 0; i < 5; i++)
         thread_create(foo);
 
-    while (1)
-        schedule();
+    unsigned int current_pid = get_current_task();
+    struct task_struct *current_task = task_pool[current_pid];
+    start_context(&current_task->context);
+
+    while (1) {};
 
     return 0;
 }
