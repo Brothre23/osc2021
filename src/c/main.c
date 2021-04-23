@@ -45,6 +45,19 @@ void fork_test()
     }
 }
 
+void user_test()
+{
+    const char* argv[] = {"argv_test", "-o", "arg2", 0};
+    while(1)
+    {
+        for(int i = 0; i < 100000000; i++) 
+        {
+            if ( i % 10000000 == 0)
+                exec((unsigned long)foo, argv);
+        }
+    }
+}
+
 int main()
 {
     // printf("Hello World!\n\n");
@@ -58,7 +71,7 @@ int main()
 
     // for (int i = 0; i < 5; i++)
         // thread_create(foo);
-    thread_create(fork_test);
+    thread_create(user_test);
 
     unsigned int current_pid = get_current_task();
     struct task_struct *current_task = task_pool[current_pid];

@@ -17,7 +17,7 @@
 int getpid();
 unsigned int uart_read(char buf[], unsigned int size);
 unsigned int uart_write(char buf[], unsigned int size);
-int exec(const char *name, const char *argv[]);
+int exec(unsigned long function, const char *argv[]);
 void exit();
 int fork();
 void enable_core_timer();
@@ -34,6 +34,7 @@ void sys_disable_core_timer();
 void sys_set_timeout(struct trapframe *tf);
 /* functions defined in schedule.c */
 void sys_getpid(struct trapframe *tf);
+void sys_exec(struct trapframe *tf);
 void sys_exit();
 void sys_fork(struct trapframe *tf);
 

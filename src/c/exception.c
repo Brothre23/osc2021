@@ -62,8 +62,10 @@ void syscall_router(int sys_call_n, struct trapframe* tf)
         case SYS_UART_WRITE:
             break;
         case SYS_EXEC:
+            sys_exec(tf);
             break;
         case SYS_EXIT:
+            sys_exit();
             break;
         case SYS_FORK:
             sys_fork(tf);
