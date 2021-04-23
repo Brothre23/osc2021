@@ -5,6 +5,8 @@
         "uart.h": "c",
         "string.h": "c",
         "timer.h": "c",
-        "printf.h": "c"
+        "printf.h": "c",
+        "exception.h": "c",
+        "schedule.h": "c"
     }
 }

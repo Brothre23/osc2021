@@ -28,11 +28,11 @@ void timer_router(unsigned long cntpct, unsigned long cntfrq)
         int pid = get_current_task();
         struct task_struct *current = task_pool[pid];
 
-        printf("pid: %d, quota; %d\n", pid, current->quota);
-
         current->quota--;
         if (current->quota <= 0)
             current->need_schedule = 1;
+
+        printf("pid: %d, quota; %d\n", pid, current->quota);
 
         asm volatile(
             "mrs x0, cntfrq_el0     \n\t"
@@ -101,8 +101,8 @@ void sys_set_timeout(struct trapframe *tf)
         }
 
         struct user_timer *front = (struct user_timer *)user_timer_list.next;
+        
         // overwrite cntp_tval_el0 if the trigger time of the new timer is less than that of the current one
-
         if (new_timer->trigger_time < front->trigger_time)
         {
             list_crop(&front->list, &front->list);

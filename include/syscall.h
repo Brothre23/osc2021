@@ -19,7 +19,7 @@ unsigned int uart_read(char buf[], unsigned int size);
 unsigned int uart_write(char buf[], unsigned int size);
 int exec(const char *name, const char *argv[]);
 void exit();
-void fork();
+int fork();
 void enable_core_timer();
 void disable_core_timer();
 void set_timeout(int second, const char *message);
@@ -35,6 +35,7 @@ void sys_set_timeout(struct trapframe *tf);
 /* functions defined in schedule.c */
 void sys_getpid(struct trapframe *tf);
 void sys_exit();
+void sys_fork(struct trapframe *tf);
 
 #endif
 
