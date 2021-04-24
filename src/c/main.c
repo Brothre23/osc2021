@@ -19,18 +19,36 @@ void foo()
     }
 }
 
+void argv_test(int argc, char** argv)
+{
+    while(1)
+    {
+        for(int i = 0; i < 100000000; i++) 
+        {
+            if ( i % 10000000 == 0)
+            {
+                printf("%d\n", argc);
+                for (int j = 0; j < argc; j++)
+                    printf("%s\n", argv[j]);
+            }
+        }
+    }
+}
+
 void fork_test()
 {
     if (fork() == 0)
     {
-        while(1)
-        {
-            for(int i = 0; i < 100000000; i++) 
-            {
-                if ( i % 10000000 == 0)
-                    printf("Child ID: %d %d\n", getpid(), i);
-            }
-        }
+        // while(1)
+        // {
+        //     for(int i = 0; i < 100000000; i++) 
+        //     {
+        //         if ( i % 10000000 == 0)
+        //             printf("Child ID: %d %d\n", getpid(), i);
+        //     }
+        // }
+        const char* argv[] = {"argv_test", "-o", "arg2", 0};
+        exec((unsigned long)argv_test, argv);
     }
     else
     {
@@ -41,19 +59,6 @@ void fork_test()
                 if ( i % 10000000 == 0)
                     printf("Parent ID: %d %d\n", getpid(), i);
             }
-        }
-    }
-}
-
-void user_test()
-{
-    const char* argv[] = {"argv_test", "-o", "arg2", 0};
-    while(1)
-    {
-        for(int i = 0; i < 100000000; i++) 
-        {
-            if ( i % 10000000 == 0)
-                exec((unsigned long)foo, argv);
         }
     }
 }
@@ -71,7 +76,7 @@ int main()
 
     // for (int i = 0; i < 5; i++)
         // thread_create(foo);
-    thread_create(user_test);
+    thread_create(fork_test);
 
     unsigned int current_pid = get_current_task();
     struct task_struct *current_task = task_pool[current_pid];

@@ -19,6 +19,7 @@ void sys_getpid(struct trapframe *tf)
 {
     int pid = get_current_task();
     tf->x[0] = pid;
+
     return;
 }
 
@@ -27,24 +28,61 @@ void sys_exec(struct trapframe *tf)
     unsigned long function = tf->x[0];
     char **argv = (char **)tf->x[1];
 
-    int counter = 0;
+    int argc = 0;
     while (1)
     {
-        if ((char *)argv[counter] == 0)
+        if ((char *)argv[argc] == 0)
             break;
+        argc++;
+    }
 
-        unsigned long address = (unsigned long)argv[counter];
-        int length = strlen(argv[counter]);
+    char **position = km_allocation(sizeof(char *) * argc);
+
+    for (int i = argc - 1; i >= 0; i--)
+    {
+        char *address = (char *)argv[i];
+        int length = strlen(argv[i]);
         int round_length = 0;
+        // why the tenary operator does not work here?
         if (length % 16 > 0)
             round_length = (length / 16 + 1) * 16;
         else
             round_length = length;
-        printf("%x %d\n", address, round_length > length);
 
-        counter++;
+        // put in the real string content
+        tf->sp_el0 -= round_length;
+        for (int j = 0; j < length + 1; j++)
+            *((char *)tf->sp_el0 + j) = *(address + j);
+
+        position[i] = (char *)tf->sp_el0;
     }
-    printf("%d\n", counter);
+
+    // setup argv[i]
+    for (int i = argc; i >= 0; i--)
+    {
+        tf->sp_el0 -= 8;
+        
+        if (i == argc)
+            *(char **)tf->sp_el0 = 0;
+        else
+            *(char **)tf->sp_el0 = position[i];
+    }
+
+    km_free(position);
+
+    // setup argv
+    tf->sp_el0 -= 8;
+    *(char ***)tf->sp_el0 = tf->sp_el0 + 8;
+    tf->x[1] = *(char ***)tf->sp_el0;
+
+    // setup argc
+    tf->sp_el0 -= 4;
+    *(int *)tf->sp_el0 = argc;
+    tf->x[0] = argc;
+
+    tf->elr_el1 = function;
+
+    return;
 }
 
 void sys_exit()
@@ -85,6 +123,8 @@ void sys_fork(struct trapframe *tf)
     // setup return values
     tf->x[0] = child_pid;
     child_tf->x[0] = 0;
+
+    return;
 }
 
 int thread_create(void (*function)())
