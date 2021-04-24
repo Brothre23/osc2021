@@ -137,8 +137,7 @@ void cpio_find_file(char file_name_to_find[])
     printf("\n");
 }
 
-/*
-void cpio_run_executable(char executable_name[])
+void *cpio_run_program(char program_name[])
 {
     char *ramfs = (char *)0x8000000;
     char file_name[100];
@@ -166,32 +165,18 @@ void cpio_run_executable(char executable_name[])
 
         file_name[name_size] = '\0';
 
-        if (strcmp(file_name, executable_name) == 0)
+        if (strcmp(file_name, program_name) == 0)
             break;
         else if ((strcmp(file_name, "TRAILER!!!") == 0))
-            return;
+            return 0;
     }
 
     ramfs -= file_size;
 
-    char *program_position = (char *)0x10A0000;
+    char *program_start = (char *)0x10A0000;
 
-    while(file_size--)
-    {
-        *program_position = *ramfs;
-        program_position++;
-        ramfs++;
-    }
+    for (int i = 0; i < file_size; i++)
+        *(program_start + i) = *(ramfs + i);
 
-    asm volatile(
-        "mov x0, 0x340          \n\t"
-        "msr spsr_el1, x0       \n\t"
-        "mov x0, 0x10A0000      \n\t"
-        "add x0, x0, 0x78       \n\t"
-        "msr elr_el1, x0        \n\t"
-        "mov x0, 0x40000        \n\t"
-        "msr sp_el0, x0         \n\t"
-        "ldr lr, =return_to_el1 \n\t"
-        "eret                   \n\t");
+    return (void *)program_start;
 }
-*/

@@ -17,7 +17,7 @@
 int getpid();
 unsigned int uart_read(char buf[], unsigned int size);
 unsigned int uart_write(char buf[], unsigned int size);
-int exec(unsigned long function, const char *argv[]);
+int exec(char *program_name, const char *argv[]);
 void exit();
 int fork();
 void enable_core_timer();

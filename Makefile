@@ -13,10 +13,7 @@ EMULATOR	= qemu-system-aarch64
 
 .PHONY: clean run deploy
 
-all: kernel8.img initramfs.cpio
-
-initramfs.cpio:
-	cd initramfs && make
+all: kernel8.img
 
 build/asm/%.o: 	src/asm/%.S
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -33,7 +30,6 @@ kernel8.img: $(OBJS_ASM) $(OBJS_C) $(OBJS_LIB)
 
 clean:
 	rm kernel8.elf kernel8.img start.o build/*/*.o >/dev/null 2>/dev/null || true
-	cd initramfs && make clean
 
 run: all
 	$(EMULATOR) -M raspi3 -kernel kernel8.img -display none -serial null -serial stdio -initrd initramfs.cpio

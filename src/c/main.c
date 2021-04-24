@@ -48,7 +48,7 @@ void fork_test()
         //     }
         // }
         const char* argv[] = {"argv_test", "-o", "arg2", 0};
-        exec((unsigned long)argv_test, argv);
+        exec("argv_test.img", argv);
     }
     else
     {

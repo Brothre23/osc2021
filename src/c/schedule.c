@@ -3,6 +3,7 @@
 #include "printf.h"
 #include "exception.h"
 #include "string.h"
+#include "cpio.h"
 
 struct task_struct *task_pool[TASK_POOL_SIZE];
 void *kstack_pool[TASK_POOL_SIZE];
@@ -25,7 +26,9 @@ void sys_getpid(struct trapframe *tf)
 
 void sys_exec(struct trapframe *tf)
 {
-    unsigned long function = tf->x[0];
+    char *program_name = tf->x[0];
+    void *program_start = cpio_run_program(program_name);
+
     char **argv = (char **)tf->x[1];
 
     int argc = 0;
@@ -36,26 +39,33 @@ void sys_exec(struct trapframe *tf)
         argc++;
     }
 
-    char **position = km_allocation(sizeof(char *) * argc);
+    char **position = km_allocation(sizeof(char *) * (argc + 1));
 
     for (int i = argc - 1; i >= 0; i--)
     {
         char *address = (char *)argv[i];
         int length = strlen(argv[i]);
-        int round_length = 0;
-        // why the tenary operator does not work here?
-        if (length % 16 > 0)
-            round_length = (length / 16 + 1) * 16;
-        else
-            round_length = length;
+        int round_length = length % 16 > 0 ? (length / 16 + 1) * 16 : length;
 
         // put in the real string content
         tf->sp_el0 -= round_length;
         for (int j = 0; j < length + 1; j++)
             *((char *)tf->sp_el0 + j) = *(address + j);
 
-        position[i] = (char *)tf->sp_el0;
+        position[i + 1] = (char *)tf->sp_el0;
     }
+
+    // setup argv[0] (program name)
+    int length = strlen(program_name);
+    int round_length = length % 16 > 0 ? (length / 16 + 1) * 16 : length;
+
+    tf->sp_el0 -= round_length;
+    for (int i = 0; i < length + 1; i++)
+        *((char *)tf->sp_el0 + i) = program_name[i];
+
+    position[0] = (char *)tf->sp_el0;
+
+    argc++;
 
     // setup argv[i]
     for (int i = argc; i >= 0; i--)
@@ -80,7 +90,7 @@ void sys_exec(struct trapframe *tf)
     *(int *)tf->sp_el0 = argc;
     tf->x[0] = argc;
 
-    tf->elr_el1 = function;
+    tf->elr_el1 = program_start;
 
     return;
 }
@@ -173,6 +183,7 @@ void kill_zombie()
 {
     while (1)
     {
+        disable_irq();
         for (int i = 1; i < TASK_POOL_SIZE; i++)
         {
             if (task_pool[i]->state == ZOMBIE)
@@ -188,7 +199,9 @@ void kill_zombie()
                 ustack_pool[i] = NULL;
             }
         }
-        // schedule();
+        enable_irq();
+        
+        schedule();
     }
 }
 
