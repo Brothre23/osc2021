@@ -36,6 +36,12 @@ fork:
     svc 2
     ret
 
+.global schedule
+schedule:
+    mov x8, SYS_SCHEDULE
+    svc 2
+    ret
+
 .global enable_core_timer
 enable_core_timer:
     mov x8, SYS_ENABLE_CORE_TIMER

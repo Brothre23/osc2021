@@ -14,7 +14,7 @@ void foo()
         for(int i = 0; i < 100000000; i++) 
         {
             if ( i % 10000000 == 0)
-                printf("Thread ID: %d %d\n", getpid(), i);
+                printf("process ID: %d %d\n", getpid(), i);
         }
     }
 }
@@ -39,27 +39,31 @@ void fork_test()
 {
     if (fork() == 0)
     {
-        // while(1)
-        // {
-        //     for(int i = 0; i < 100000000; i++) 
-        //     {
-        //         if ( i % 10000000 == 0)
-        //             printf("Child ID: %d %d\n", getpid(), i);
-        //     }
-        // }
-        const char* argv[] = {"argv_test", "-o", "arg2", 0};
-        exec("argv_test.img", argv);
-    }
-    else
-    {
-        while(1)
+        int counter = 5;
+        while (counter--)
         {
             for(int i = 0; i < 100000000; i++) 
             {
                 if ( i % 10000000 == 0)
-                    printf("Parent ID: %d %d\n", getpid(), i);
+                    printf("child ID: %d %d\n", getpid(), i);
             }
         }
+        exit();
+        // const char* argv[] = {"argv_test", "-o", "arg2", 0};
+        // exec("argv_test.img", argv);
+    }
+    else
+    {
+        int counter = 5;
+        while (counter--)
+        {
+            for(int i = 0; i < 100000000; i++) 
+            {
+                if ( i % 10000000 == 0)
+                    printf("parent ID: %d %d\n", getpid(), i);
+            }
+        }
+        exit();
     }
 }
 

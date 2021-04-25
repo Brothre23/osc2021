@@ -4,6 +4,7 @@
 #include "exception.h"
 #include "string.h"
 #include "cpio.h"
+#include "syscall.h"
 
 struct task_struct *task_pool[TASK_POOL_SIZE];
 void *kstack_pool[TASK_POOL_SIZE];
@@ -26,7 +27,7 @@ void sys_getpid(struct trapframe *tf)
 
 void sys_exec(struct trapframe *tf)
 {
-    char *program_name = tf->x[0];
+    char *program_name = (char *)tf->x[0];
     void *program_start = cpio_run_program(program_name);
 
     char **argv = (char **)tf->x[1];
@@ -101,7 +102,7 @@ void sys_exit()
     struct task_struct *current = task_pool[current_pid];
 
     current->state = ZOMBIE;
-    schedule();
+    sys_schedule();
 }
 
 void sys_fork(struct trapframe *tf)
@@ -181,26 +182,24 @@ int thread_create(void (*function)())
 
 void kill_zombie()
 {
+    enable_core_timer();
+
     while (1)
     {
-        disable_irq();
         for (int i = 1; i < TASK_POOL_SIZE; i++)
         {
             if (task_pool[i]->state == ZOMBIE)
             {
                 printf("process ID: %d killed!\n", i);
-                task_pool[i]->state = EXIT;
 
                 km_free(kstack_pool[i]);
-                task_pool[i] = NULL;
+                kstack_pool[i] = NULL;
                 km_free(ustack_pool[i]);
                 ustack_pool[i] = NULL;
                 km_free(task_pool[i]);
-                ustack_pool[i] = NULL;
+                task_pool[i] = NULL;
             }
         }
-        enable_irq();
-        
         schedule();
     }
 }
@@ -213,7 +212,7 @@ void meow()
     }
 }
 
-void schedule()
+void sys_schedule()
 {
     int prev_pid = get_current_task();
     int next_pid = prev_pid;
@@ -236,7 +235,7 @@ void init_schedule()
     for (int i = 0; i < TASK_POOL_SIZE; i++)
         task_pool[i] = NULL;
 
-    int pid = thread_create(meow);
+    int pid = thread_create(kill_zombie);
     update_current_task(pid);
 }
 
@@ -247,8 +246,6 @@ void task_preemption()
     {
         current->quota = TASK_QUOTA;
         current->need_schedule = 0;
-        schedule();
+        sys_schedule();
     }
-
-    // enable_irq();
 }

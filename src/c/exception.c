@@ -70,6 +70,9 @@ void syscall_router(int sys_call_n, struct trapframe* tf)
         case SYS_FORK:
             sys_fork(tf);
             break;
+        case SYS_SCHEDULE:
+            sys_schedule();
+            break;
         case SYS_ENABLE_CORE_TIMER:
             sys_enable_core_timer();
             printf("enable core timer\n");
