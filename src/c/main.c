@@ -13,25 +13,10 @@ void foo()
     {
         for(int i = 0; i < 100000000; i++) 
         {
-            if ( i % 10000000 == 0)
+            if ( i % 20000000 == 0)
                 printf("process ID: %d %d\n", getpid(), i);
         }
-    }
-}
-
-void argv_test(int argc, char** argv)
-{
-    while(1)
-    {
-        for(int i = 0; i < 100000000; i++) 
-        {
-            if ( i % 10000000 == 0)
-            {
-                printf("%d\n", argc);
-                for (int j = 0; j < argc; j++)
-                    printf("%s\n", argv[j]);
-            }
-        }
+        // schedule();
     }
 }
 
@@ -39,23 +24,24 @@ void fork_test()
 {
     if (fork() == 0)
     {
-        int counter = 5;
-        while (counter--)
-        {
-            for(int i = 0; i < 100000000; i++) 
-            {
-                if ( i % 10000000 == 0)
-                    printf("child ID: %d %d\n", getpid(), i);
-            }
-        }
-        exit();
-        // const char* argv[] = {"argv_test", "-o", "arg2", 0};
-        // exec("argv_test.img", argv);
+        // int counter = 20;
+        // while (counter--)
+        // {
+        //     for(int i = 0; i < 100000000; i++) 
+        //     {
+        //         if ( i % 10000000 == 0)
+        //             printf("child ID: %d %d\n", getpid(), i);
+        //     }
+        // }
+        // exit();
+        const char* argv[] = {"argv_test", "-o", "arg2", 0};
+        exec("argv_test.img", argv);
     }
     else
     {
-        int counter = 5;
-        while (counter--)
+        // int counter = 40;
+        // while (counter--)
+        while(1)
         {
             for(int i = 0; i < 100000000; i++) 
             {
@@ -63,7 +49,7 @@ void fork_test()
                     printf("parent ID: %d %d\n", getpid(), i);
             }
         }
-        exit();
+        // exit();
     }
 }
 
@@ -79,7 +65,7 @@ int main()
     init_timer();
 
     // for (int i = 0; i < 5; i++)
-        // thread_create(foo);
+    //     thread_create(foo);
     thread_create(fork_test);
 
     unsigned int current_pid = get_current_task();

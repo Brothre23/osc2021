@@ -87,7 +87,7 @@ void sys_exec(struct trapframe *tf)
     tf->x[1] = *(char ***)tf->sp_el0;
 
     // setup argc
-    tf->sp_el0 -= 4;
+    tf->sp_el0 -= 16;
     *(int *)tf->sp_el0 = argc;
     tf->x[0] = argc;
 
@@ -200,7 +200,12 @@ void kill_zombie()
                 task_pool[i] = NULL;
             }
         }
-        schedule();
+        // for(int i = 0; i < 100000000; i++) 
+        // {
+        //     if ( i % 20000000 == 0)
+        //         printf("kill_zombie()\n");
+        // }
+        // schedule();
     }
 }
 
