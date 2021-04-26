@@ -44,20 +44,26 @@ void sys_exec(struct trapframe *tf)
         argc++;
     }
 
+    void *argv_backup = km_allocation(sizeof(char **) * argc);
+    for (int i = 0; i < argc; i++)
+        *(char **)(argv_backup + 8 * i) = argv[i];
+
     char **position = km_allocation(sizeof(char *) * (argc + 1));
 
     for (int i = argc - 1; i >= 0; i--)
     {
-        int length = strlen(argv[i]);
+        int length = strlen(*(char **)(argv_backup + 8 * i));
         int round_length = length % 16 > 0 ? (length / 16 + 1) * 16 : length;
 
         // put in the real string content
         tf->sp_el0 -= round_length;
         for (int j = 0; j < length + 1; j++)
-            *((char *)tf->sp_el0 + j) = argv[i][j];
+            *((char *)tf->sp_el0 + j) = *(*(char **)(argv_backup + 8 * i) + j);
 
         position[i + 1] = (char *)tf->sp_el0;
     }
+
+    km_free(argv_backup);
 
     // put in the program name
     int length = strlen(program_name);
@@ -76,7 +82,7 @@ void sys_exec(struct trapframe *tf)
         tf->sp_el0 -= 16;
         asm volatile("stp %0, xzr, [%1]" ::"r"(position[argc - 1]), "r"(tf->sp_el0));
 
-        for (int i = argc - 2; i >= 0;i-=2)
+        for (int i = argc - 2; i >= 0; i -= 2)
         {
             tf->sp_el0 -= 16;
             if (i == 0)
@@ -109,7 +115,7 @@ void sys_exec(struct trapframe *tf)
     // for (int i = argc; i >= 0; i--)
     // {
     //     tf->sp_el0 -= 8;
-        
+
     //     if (i == argc)
     //         *(char **)tf->sp_el0 = 0;
     //     else
@@ -154,8 +160,8 @@ void sys_fork(struct trapframe *tf)
     char *child_ustack = ustack_pool[child_pid] + USTACK_SIZE;
     char *parent_ustack = ustack_pool[parent_pid] + USTACK_SIZE;
 
-    unsigned long kstack_offset = parent_kstack - (char *)tf;           // how many bytes the kernel stack of the parent thread have used
-    unsigned long ustack_offset = parent_ustack - (char *)tf->sp_el0;   // how many bytes the user stack of the parent thread have used
+    unsigned long kstack_offset = parent_kstack - (char *)tf;         // how many bytes the kernel stack of the parent thread have used
+    unsigned long ustack_offset = parent_ustack - (char *)tf->sp_el0; // how many bytes the user stack of the parent thread have used
 
     for (unsigned long i = 0; i < kstack_offset; i++)
         *(child_kstack - i) = *(parent_kstack - i);
@@ -212,7 +218,7 @@ int thread_create(void (*function)())
 
     task_pool[pid] = new_task;
     kstack_pool[pid] = (void *)new_task->context.sp - (KSTACK_SIZE - TRAPFRAME_SIZE);
-    ustack_pool[pid] = (void *)new_task_tf->sp_el0 - (USTACK_SIZE - TRAPFRAME_SIZE);
+    ustack_pool[pid] = (void *)new_task_tf->sp_el0 - USTACK_SIZE;
 
     return pid;
 }
