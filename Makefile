@@ -5,11 +5,11 @@ OBJS_ASM 		= $(addprefix ./build/asm/, 	$(notdir $(SRCS_ASM:%.S=%.o)))
 OBJS_C 			= $(addprefix ./build/c/, 		$(notdir $(SRCS_C:%.c=%.o)))
 OBJS_LIB 		= $(addprefix ./build/lib/, 	$(notdir $(SRCS_LIB:%.c=%.o)))
 
-CFLAGS 		= -Wall -ffreestanding -nostdlib -Iinclude -Ilib
-CC 			= aarch64-linux-gnu-gcc
-LINKER 		= aarch64-linux-gnu-ld
-OBJ_COPY 	= aarch64-linux-gnu-objcopy
-EMULATOR	= qemu-system-aarch64
+CFLAGS 			= -Wall -O2 -ffreestanding -nostdlib -Iinclude -Ilib
+CC 				= aarch64-linux-gnu-gcc
+LINKER 			= aarch64-linux-gnu-ld
+OBJ_COPY 		= aarch64-linux-gnu-objcopy
+EMULATOR		= qemu-system-aarch64
 
 .PHONY: clean run deploy
 

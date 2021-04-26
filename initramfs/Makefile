@@ -21,13 +21,16 @@ $(CPIO):	$(IMG)
 	find $(CPIO_FILE) | cpio -o -H newc > ./$(CPIO)
 	mv ./$(CPIO) ../ 
 
-$(IMG):		$(OBJS)
-	$(LINKER) -nostdlib $(OBJS) -T ./code/link.ld -o $(ELF)
+$(IMG):		$(OBJS) code/syscall.o
+	$(LINKER) -nostdlib $(OBJS) code/syscall.o -T link.ld -o $(ELF)
 	$(OBJ_COPY) -O binary $(ELF) $@
+
+code/syscall.o:	code/syscall.S
+	$(CC) $(CFLAGS) -c $< -o $@
 
 code/%.o: 	code/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm $(OBJS) $(ELF) $(IMG) >/dev/null 2>/dev/null || true
+	rm $(OBJS) code/syscall.o $(ELF) $(IMG) >/dev/null 2>/dev/null || true
 	

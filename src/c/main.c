@@ -9,7 +9,8 @@
 
 void foo()
 {
-    while(1)
+    int counter = 60;
+    while (counter--)
     {
         for(int i = 0; i < 100000000; i++) 
         {
@@ -18,6 +19,7 @@ void foo()
         }
         // schedule();
     }
+    exit();
 }
 
 void fork_test()
@@ -34,14 +36,13 @@ void fork_test()
         //     }
         // }
         // exit();
-        const char* argv[] = {"argv_test", "-o", "arg2", 0};
+        const char* argv[] = {"argv_test", "-o", "arg2", "meow", 0};
         exec("argv_test.img", argv);
     }
     else
     {
-        // int counter = 40;
-        // while (counter--)
-        while(1)
+        int counter = 20;
+        while (counter--)
         {
             for(int i = 0; i < 100000000; i++) 
             {
@@ -49,7 +50,7 @@ void fork_test()
                     printf("parent ID: %d %d\n", getpid(), i);
             }
         }
-        // exit();
+        exit();
     }
 }
 
@@ -66,6 +67,7 @@ int main()
 
     // for (int i = 0; i < 5; i++)
     //     thread_create(foo);
+    thread_create(foo);
     thread_create(fork_test);
 
     unsigned int current_pid = get_current_task();

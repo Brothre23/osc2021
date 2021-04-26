@@ -149,12 +149,12 @@ return_to_el1:
 
 .globl enable_irq
 enable_irq:
-    msr    daifclr, #2 
+    msr    daifclr, 2 
     ret
 
 .globl disable_irq
 disable_irq:
-    msr	   daifset, #2
+    msr	   daifset, 2
     ret
 
 .global return_to_user_code
