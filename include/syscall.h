@@ -40,6 +40,9 @@ void sys_exec(struct trapframe *tf);
 void sys_exit();
 void sys_fork(struct trapframe *tf);
 void sys_schedule();
+/* functions defined in uart.c */
+void sys_uart_read(struct trapframe *tf);
+void sys_uart_write(struct trapframe *tf);
 
 #endif
 

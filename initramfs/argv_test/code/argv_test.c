@@ -13,7 +13,7 @@ void main(int argc, char **argv)
         {
             if (i % 2000000 == 0)
             {
-                printf("[child] pid: %d %d\n", getpid(), i);
+                printf("[CHILD] pid: %d %d\n", getpid(), i);
                 printf("%d ", argc);
                 for (int j = 0; j < argc; j++)
                     printf("%s ", argv[j]);

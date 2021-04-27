@@ -58,8 +58,10 @@ void syscall_router(int sys_call_n, struct trapframe* tf)
             sys_getpid(tf);
             break;
         case SYS_UART_READ:
+            sys_uart_read(tf);
             break;
         case SYS_UART_WRITE:
+            sys_uart_write(tf);
             break;
         case SYS_EXEC:
             sys_exec(tf);

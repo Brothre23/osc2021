@@ -158,6 +158,14 @@ int thread_create(void (*function)())
 
 void kill_zombie()
 {
+    char uart_read_buffer[10];
+    int read_size = uart_read(uart_read_buffer, 5);
+    printf("[UART_READ] %d %s\n", read_size, uart_read_buffer);
+
+    char uart_write_buffer[] = "Hello World !";
+    int write_size = uart_write(uart_write_buffer, strlen(uart_write_buffer));
+    printf("[UART_WRITE] %d\n", write_size);
+
     enable_core_timer();
 
     while (1)

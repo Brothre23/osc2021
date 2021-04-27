@@ -25,6 +25,8 @@
 
 #include "gpio.h"
 #include "uart.h"
+#include "exception.h"
+#include "syscall.h"
 
 /**
  * Set baud rate and characteristics (115200 8N1) and map to GPIO
@@ -184,4 +186,26 @@ void uart_puts(char *s)
 void putc(void *p, char c)
 {
     uart_send(c);
+}
+
+void sys_uart_read(struct trapframe *tf)
+{
+    char *buffer = tf->x[0];
+    int size = tf->x[1];
+
+    for (int i = 0; i < size; i++)
+        buffer[i] = uart_getc();
+
+    tf->x[0] = size;
+}
+
+void sys_uart_write(struct trapframe *tf)
+{
+    char *buffer = tf->x[0];
+    int size = tf->x[1];
+
+    uart_puts(buffer);
+    uart_send('\n');
+
+    tf->x[0] = size;
 }

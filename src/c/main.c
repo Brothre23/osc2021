@@ -15,7 +15,7 @@ void foo()
         for(int i = 0; i < 10000000; i++) 
         {
             if ( i % 2000000 == 0)
-                printf("[foo] pid: %d %d\n", getpid(), i);
+                printf("[FOO] pid: %d %d\n", getpid(), i);
         }
         // schedule();
     }
@@ -47,7 +47,7 @@ void fork_test()
             for(int i = 0; i < 10000000; i++) 
             {
                 if ( i % 2000000 == 0)
-                    printf("[parent] pid: %d %d\n", getpid(), i);
+                    printf("[PARENT] pid: %d %d\n", getpid(), i);
             }
         }
         exit();
@@ -65,7 +65,7 @@ int main()
     init_schedule();
     init_timer();
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 3; i++)
         thread_create(foo);
     // thread_create(foo);
     thread_create(fork_test);
