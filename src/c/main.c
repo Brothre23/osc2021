@@ -9,13 +9,13 @@
 
 void foo()
 {
-    int counter = 60;
+    int counter = 6;
     while (counter--)
     {
-        for(int i = 0; i < 100000000; i++) 
+        for(int i = 0; i < 10000000; i++) 
         {
-            if ( i % 20000000 == 0)
-                printf("process ID: %d %d\n", getpid(), i);
+            if ( i % 2000000 == 0)
+                printf("[foo] pid: %d %d\n", getpid(), i);
         }
         // schedule();
     }
@@ -41,13 +41,13 @@ void fork_test()
     }
     else
     {
-        int counter = 20;
+        int counter = 2;
         while (counter--)
         {
-            for(int i = 0; i < 100000000; i++) 
+            for(int i = 0; i < 10000000; i++) 
             {
-                if ( i % 10000000 == 0)
-                    printf("parent ID: %d %d\n", getpid(), i);
+                if ( i % 2000000 == 0)
+                    printf("[parent] pid: %d %d\n", getpid(), i);
             }
         }
         exit();
@@ -65,9 +65,9 @@ int main()
     init_schedule();
     init_timer();
 
-    // for (int i = 0; i < 5; i++)
-    //     thread_create(foo);
-    thread_create(foo);
+    for (int i = 0; i < 2; i++)
+        thread_create(foo);
+    // thread_create(foo);
     thread_create(fork_test);
 
     unsigned int current_pid = get_current_task();

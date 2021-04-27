@@ -31,11 +31,6 @@ void sys_exec(struct trapframe *tf)
     void *program_start = cpio_run_program(program_name);
     char **argv = (char **)tf->x[1];
 
-    // flush user stack
-    int pid = get_current_task();
-    unsigned long stack_reset = ustack_pool[pid] + USTACK_SIZE;
-    tf->sp_el0 = stack_reset;
-
     int argc = 0;
     while (1)
     {
@@ -44,51 +39,30 @@ void sys_exec(struct trapframe *tf)
         argc++;
     }
 
-    void *argv_backup = km_allocation(sizeof(char **) * argc);
+    char **argv_backup = km_allocation(sizeof(char *) * (argc + 1));
     for (int i = 0; i < argc; i++)
-        *(char **)(argv_backup + 8 * i) = argv[i];
+        argv_backup[i + 1] = argv[i];
+    argv_backup[0] = program_name;
 
-    char **position = km_allocation(sizeof(char *) * (argc + 1));
-
-    for (int i = argc - 1; i >= 0; i--)
-    {
-        int length = strlen(*(char **)(argv_backup + 8 * i));
-        int round_length = length % 16 > 0 ? (length / 16 + 1) * 16 : length;
-
-        // put in the real string content
-        tf->sp_el0 -= round_length;
-        for (int j = 0; j < length + 1; j++)
-            *((char *)tf->sp_el0 + j) = *(*(char **)(argv_backup + 8 * i) + j);
-
-        position[i + 1] = (char *)tf->sp_el0;
-    }
-
-    km_free(argv_backup);
-
-    // put in the program name
-    int length = strlen(program_name);
-    int round_length = length % 16 > 0 ? (length / 16 + 1) * 16 : length;
-
-    tf->sp_el0 -= round_length;
-    for (int i = 0; i < length + 1; i++)
-        *((char *)tf->sp_el0 + i) = program_name[i];
-
-    position[0] = (char *)tf->sp_el0;
+    // flush user stack
+    int pid = get_current_task();
+    unsigned long stack_reset = ustack_pool[pid] + USTACK_SIZE;
+    tf->sp_el0 = stack_reset;
 
     argc++;
 
     if (argc % 2 == 0)
     {
         tf->sp_el0 -= 16;
-        asm volatile("stp %0, xzr, [%1]" ::"r"(position[argc - 1]), "r"(tf->sp_el0));
+        asm volatile("stp %0, xzr, [%1]" ::"r"(argv_backup[argc - 1]), "r"(tf->sp_el0));
 
         for (int i = argc - 2; i >= 0; i -= 2)
         {
             tf->sp_el0 -= 16;
             if (i == 0)
-                asm volatile("stp %0, %1, [%2]" ::"r"(tf->sp_el0 + 8), "r"(position[0]), "r"(tf->sp_el0));
+                asm volatile("stp %0, %1, [%2]" ::"r"(tf->sp_el0 + 8), "r"(argv_backup[0]), "r"(tf->sp_el0));
             else
-                asm volatile("stp %0, %1, [%2]" ::"r"(position[i - 1]), "r"(position[i]), "r"(tf->sp_el0));
+                asm volatile("stp %0, %1, [%2]" ::"r"(argv_backup[i - 1]), "r"(argv_backup[i]), "r"(tf->sp_el0));
         }
     }
     else
@@ -101,33 +75,15 @@ void sys_exec(struct trapframe *tf)
         {
             tf->sp_el0 -= 16;
             if (i == 0)
-                asm volatile("stp %0, %1, [%2]" ::"r"(tf->sp_el0 + 8), "r"(position[0]), "r"(tf->sp_el0));
+                asm volatile("stp %0, %1, [%2]" ::"r"(tf->sp_el0 + 8), "r"(argv_backup[0]), "r"(tf->sp_el0));
             else
-                asm volatile("stp %0, %1, [%2]" ::"r"(position[i - 1]), "r"(position[i]), "r"(tf->sp_el0));
+                asm volatile("stp %0, %1, [%2]" ::"r"(argv_backup[i - 1]), "r"(argv_backup[i]), "r"(tf->sp_el0));
         }
     }
 
-    km_free(position);
+    km_free(argv_backup);
 
     tf->x[1] = *(char ***)tf->sp_el0;
-
-    // // setup argv[i]
-    // for (int i = argc; i >= 0; i--)
-    // {
-    //     tf->sp_el0 -= 8;
-
-    //     if (i == argc)
-    //         *(char **)tf->sp_el0 = 0;
-    //     else
-    //         *(char **)tf->sp_el0 = position[i];
-    // }
-
-    // km_free(position);
-
-    // // setup argv
-    // tf->sp_el0 -= 8;
-    // *(char ***)tf->sp_el0 = tf->sp_el0 + 8;
-    // tf->x[1] = *(char ***)tf->sp_el0;
 
     // setup argc
     tf->sp_el0 -= 16;
