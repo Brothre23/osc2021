@@ -152,6 +152,13 @@ void uart_getline(char *buffer)
             buffer[counter] = c;
             counter++;
             uart_send(c);
+
+            if (counter == 100)
+            {
+                buffer[counter] = '\0';
+                uart_send(c);
+                break;
+            }
         }
     }
 

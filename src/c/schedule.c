@@ -43,43 +43,20 @@ void sys_exec(struct trapframe *tf)
     for (int i = 0; i < argc; i++)
         argv_backup[i + 1] = argv[i];
     argv_backup[0] = program_name;
+    argc++;
 
     // flush user stack
     int pid = get_current_task();
     unsigned long stack_reset = ustack_pool[pid] + USTACK_SIZE;
     tf->sp_el0 = stack_reset;
 
-    argc++;
+    // padding to multiples of 16-bytes
+    tf->sp_el0 -= (16 + (argc + argc % 2) * 8);
 
-    if (argc % 2 == 0)
-    {
-        tf->sp_el0 -= 16;
-        asm volatile("stp %0, xzr, [%1]" ::"r"(argv_backup[argc - 1]), "r"(tf->sp_el0));
-
-        for (int i = argc - 2; i >= 0; i -= 2)
-        {
-            tf->sp_el0 -= 16;
-            if (i == 0)
-                asm volatile("stp %0, %1, [%2]" ::"r"(tf->sp_el0 + 8), "r"(argv_backup[0]), "r"(tf->sp_el0));
-            else
-                asm volatile("stp %0, %1, [%2]" ::"r"(argv_backup[i - 1]), "r"(argv_backup[i]), "r"(tf->sp_el0));
-        }
-    }
-    else
-    {
-        // just leave the extra 8 bytes wasted
-        tf->sp_el0 -= 16;
-        asm volatile("str wzr, [%0]" ::"r"(tf->sp_el0));
-
-        for (int i = argc - 1; i >= 0; i -= 2)
-        {
-            tf->sp_el0 -= 16;
-            if (i == 0)
-                asm volatile("stp %0, %1, [%2]" ::"r"(tf->sp_el0 + 8), "r"(argv_backup[0]), "r"(tf->sp_el0));
-            else
-                asm volatile("stp %0, %1, [%2]" ::"r"(argv_backup[i - 1]), "r"(argv_backup[i]), "r"(tf->sp_el0));
-        }
-    }
+    *(char **)tf->sp_el0 = tf->sp_el0 + 8;
+    for (int i = 0; i < argc; i++)
+        *(char **)(tf->sp_el0 + 8 + 8 * i) = argv_backup[i];
+    *(char **)(tf->sp_el0 + 8 + 8 * argc) = 0;
 
     km_free(argv_backup);
 
@@ -200,14 +177,6 @@ void kill_zombie()
             }
         }
         schedule();
-    }
-}
-
-void meow()
-{
-    enable_core_timer();
-    while (1)
-    {
     }
 }
 

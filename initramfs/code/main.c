@@ -2,7 +2,7 @@
 #include "uart.h"
 #include "syscall.h"
 
-int main(int argc, char **argv)
+void main(int argc, char **argv)
 {
     init_printf(0, putc);
     // while (1)

@@ -1,5 +1,5 @@
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef MM_H
+#define MM_H
 
 #define MEMORY_START            0xA0000
 
