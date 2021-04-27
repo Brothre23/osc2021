@@ -1,36 +1,23 @@
-SRCS 		= $(wildcard ./code/*.c)
-OBJS		= $(SRCS:%.c=%.o)
-
-PROGRAM		= argv_test
-ELF			= ./code/$(PROGRAM).elf
-IMG			= $(PROGRAM).img
+IMG			= argv_test.img fork_test.img
 
 CPIO		= initramfs.cpio
 CPIO_FILE	= model.py test.txt $(IMG)
-
-CFLAGS 		= -Wall -O2 -ffreestanding -nostdlib
-CC 			= aarch64-linux-gnu-gcc
-LINKER 		= aarch64-linux-gnu-ld
-OBJ_COPY 	= aarch64-linux-gnu-objcopy
 
 .PHONY: 	clean
 
 all:		$(CPIO)
 
+argv_test.img:
+	cd argv_test && make && cd ..
+
+fork_test.img:
+	cd fork_test && make && cd ..
+
 $(CPIO):	$(IMG)
 	find $(CPIO_FILE) | cpio -o -H newc > ./$(CPIO)
-	mv ./$(CPIO) ../ 
-
-$(IMG):		$(OBJS) code/syscall.o
-	$(LINKER) -nostdlib $(OBJS) code/syscall.o -T link.ld -o $(ELF)
-	$(OBJ_COPY) -O binary $(ELF) $@
-
-code/syscall.o:	code/syscall.S
-	$(CC) $(CFLAGS) -c $< -o $@
-
-code/%.o: 	code/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	mv ./$(CPIO) ../
 
 clean:
-	rm $(OBJS) code/syscall.o $(ELF) $(IMG) >/dev/null 2>/dev/null || true
-	
+	rm argv_test.img fork_test.img
+	cd argv_test && make clean && cd ..
+	cd fork_test && make clean && cd ..
