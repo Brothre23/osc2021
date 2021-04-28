@@ -80,9 +80,9 @@ exception_vector_table:
     
     // Current EL with SPx
     .align 7
-    b svc_handler           // Synchronous
+    b invalid_handler       // Synchronous
     .align 7
-    b timer_handler_EL1     // IRQ
+    b invalid_handler       // IRQ
     .align 7
     b invalid_handler       // FIQ
     .align 7
@@ -92,7 +92,7 @@ exception_vector_table:
     .align 7
     b svc_handler           // Synchronous
     .align 7
-    b timer_handler_EL0     // IRQ
+    b timer_handler         // IRQ
     .align 7 
     b invalid_handler       // FIQ
     .align 7 
@@ -115,18 +115,10 @@ svc_handler:
     mrs x2, esr_el1
     mov x3, sp
     bl  svc_router
-    // bl  task_preemption
-    kernel_exit
-
-timer_handler_EL0:
-    kernel_entry
-    mrs x0, cntpct_el0
-    mrs x1, cntfrq_el0
-    bl  timer_router
     bl  task_preemption
     kernel_exit
 
-timer_handler_EL1:
+timer_handler:
     kernel_entry
     mrs x0, cntpct_el0
     mrs x1, cntfrq_el0

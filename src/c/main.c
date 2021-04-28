@@ -9,41 +9,18 @@
 
 void foo()
 {
-    int counter = 5;
+    int counter = 20;
     while (counter--)
     {
-        for(int i = 0; i < 10000000; i++) 
+        for(int i = 0; i < 100000000; i++) 
         {
-            if ( i % 2000000 == 0)
+            if ( i % 20000000 == 0)
                 printf("[FOO] pid: %d %d\n", getpid(), i);
         }
-        schedule();
+        // schedule();
     }
     exit();
 }
-
-void fork_test()
-{
-    if (fork() == 0)
-    {
-        const char* argv[] = {"argv_test", "-o", "arg2", "meow", 0};
-        exec("argv_test.img", argv);
-    }
-    else
-    {
-        int counter = 2;
-        while (counter--)
-        {
-            for(int i = 0; i < 10000000; i++) 
-            {
-                if ( i % 2000000 == 0)
-                    printf("[PARENT] pid: %d %d\n", getpid(), i);
-            }
-        }
-        exit();
-    }
-}
-
 
 void user_test()
 {
@@ -62,16 +39,13 @@ int main()
     init_schedule();
     init_timer();
 
-    // for (int i = 0; i < 5; i++)
-        // thread_create(foo);
-    // thread_create(foo);
+    for (int i = 0; i < 5; i++)
+        thread_create(foo);
     thread_create(user_test);
 
     unsigned int current_pid = get_current_task();
     struct task_struct *current_task = task_pool[current_pid];
     start_context(&current_task->context);
-
-    // while (1) {};
 
     return 0;
 }
