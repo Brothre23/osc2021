@@ -26,16 +26,6 @@ void fork_test()
 {
     if (fork() == 0)
     {
-        // int counter = 20;
-        // while (counter--)
-        // {
-        //     for(int i = 0; i < 100000000; i++) 
-        //     {
-        //         if ( i % 10000000 == 0)
-        //             printf("child ID: %d %d\n", getpid(), i);
-        //     }
-        // }
-        // exit();
         const char* argv[] = {"argv_test", "-o", "arg2", "meow", 0};
         exec("argv_test.img", argv);
     }

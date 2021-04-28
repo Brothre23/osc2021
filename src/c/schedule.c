@@ -202,8 +202,6 @@ void sys_schedule()
         next = task_pool[next_pid];
     }
 
-    // printf("%d\n", next_pid);
-
     update_current_task(next_pid);
     context_switch(&prev->context, &next->context);
 }
