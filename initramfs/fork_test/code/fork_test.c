@@ -24,12 +24,6 @@
 //     exit();
 // }
 
-// void delay(unsigned int count)
-// {
-//     while (count--)
-//         ;
-// }
-
 void main(void) 
 {
     init_printf(0, putc);
@@ -42,7 +36,7 @@ void main(void)
         printf("pid: %d, cnt: %d, ptr: %x\n", getpid(), cnt, &cnt);
         ++cnt;
         fork();
-        while (cnt < 5) 
+        while (cnt < 5)
         {
             printf("pid: %d, cnt: %d, ptr: %x\n", getpid(), cnt, &cnt);
             // delay(1000000);

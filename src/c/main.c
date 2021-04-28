@@ -59,8 +59,6 @@ void user_test()
 {
     const char* argv[] = {"argv_test", "-o", "arg2", 0};
     exec("argv_test.img", argv);
-    // const char *fork_argv[] = {"fork_test", 0};
-    // exec("fork_test.img", fork_argv);
 }
 
 int main()
@@ -74,8 +72,8 @@ int main()
     init_schedule();
     init_timer();
 
-    for (int i = 0; i < 5; i++)
-        thread_create(foo);
+    // for (int i = 0; i < 5; i++)
+        // thread_create(foo);
     // thread_create(foo);
     thread_create(user_test);
 

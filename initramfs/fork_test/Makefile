@@ -5,7 +5,7 @@ PROGRAM			= fork_test
 ELF				= ./code/$(PROGRAM).elf
 IMG				= ../$(PROGRAM).img
 
-CFLAGS 			= -Wall -O2 -ffreestanding -nostdlib
+CFLAGS 			= -Wall -ffreestanding -nostdlib
 CC 				= aarch64-linux-gnu-gcc
 LINKER 			= aarch64-linux-gnu-ld
 OBJ_COPY 		= aarch64-linux-gnu-objcopy
