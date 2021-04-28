@@ -158,15 +158,15 @@ int thread_create(void (*function)())
 
 void kill_zombie()
 {
-    char uart_read_buffer[10];
-    int read_size = uart_read(uart_read_buffer, 5);
-    printf("[UART_READ] %d %s\n", read_size, uart_read_buffer);
+    // char uart_read_buffer[10];
+    // int read_size = uart_read(uart_read_buffer, 5);
+    // printf("[UART_READ] %d %s\n", read_size, uart_read_buffer);
 
-    char uart_write_buffer[] = "Hello World !";
-    int write_size = uart_write(uart_write_buffer, strlen(uart_write_buffer));
-    printf("[UART_WRITE] %d\n", write_size);
+    // char uart_write_buffer[] = "Hello World !";
+    // int write_size = uart_write(uart_write_buffer, strlen(uart_write_buffer));
+    // printf("[UART_WRITE] %d\n", write_size);
 
-    enable_core_timer();
+    // enable_core_timer();
 
     while (1)
     {
@@ -201,6 +201,8 @@ void sys_schedule()
         next_pid = (next_pid + 1) % TASK_POOL_SIZE;
         next = task_pool[next_pid];
     }
+
+    // printf("%d\n", next_pid);
 
     update_current_task(next_pid);
     context_switch(&prev->context, &next->context);

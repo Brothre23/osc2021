@@ -9,7 +9,7 @@
 
 void foo()
 {
-    int counter = 6;
+    int counter = 5;
     while (counter--)
     {
         for(int i = 0; i < 10000000; i++) 
@@ -17,7 +17,7 @@ void foo()
             if ( i % 2000000 == 0)
                 printf("[FOO] pid: %d %d\n", getpid(), i);
         }
-        // schedule();
+        schedule();
     }
     exit();
 }
@@ -54,6 +54,15 @@ void fork_test()
     }
 }
 
+
+void user_test()
+{
+    const char* argv[] = {"argv_test", "-o", "arg2", 0};
+    exec("argv_test.img", argv);
+    // const char *fork_argv[] = {"fork_test", 0};
+    // exec("fork_test.img", fork_argv);
+}
+
 int main()
 {
     // printf("Hello World!\n\n");
@@ -65,10 +74,10 @@ int main()
     init_schedule();
     init_timer();
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 5; i++)
         thread_create(foo);
     // thread_create(foo);
-    thread_create(fork_test);
+    thread_create(user_test);
 
     unsigned int current_pid = get_current_task();
     struct task_struct *current_task = task_pool[current_pid];
