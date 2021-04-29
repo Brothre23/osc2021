@@ -34,7 +34,7 @@ struct task_struct
 {
     int pid;
     enum task_state state;
-    // int exit_status;
+    int preemptible;
     int need_schedule;
     int quota;
     struct cpu_context context;

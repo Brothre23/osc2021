@@ -11,8 +11,7 @@ void foo()
 {
     for (int i = 0; i < 20; i++)
     {
-        int delay = 1000000;
-        while(delay--) {}
+        delay(1000000);
         printf("[FOO] pid: %d %d\n", getpid(), i);
     }
     exit();

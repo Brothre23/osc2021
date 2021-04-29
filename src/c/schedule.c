@@ -13,8 +13,19 @@ unsigned int current_pid;
 
 void delay(unsigned int count)
 {
-    while (count--)
-        ;
+    while(count--) {}
+}
+
+void enable_preemption()
+{
+    int pid = get_current_task();
+    task_pool[pid]->preemptible = 1;
+}
+
+void disable_preemption()
+{
+    int pid = get_current_task();
+    task_pool[pid]->preemptible = 0;
 }
 
 void sys_getpid(struct trapframe *tf)
@@ -27,6 +38,8 @@ void sys_getpid(struct trapframe *tf)
 
 void sys_exec(struct trapframe *tf)
 {
+    disable_preemption();
+
     char *program_name = (char *)tf->x[0];
     void *program_start = cpio_run_program(program_name);
     char **argv = (char **)tf->x[1];
@@ -69,6 +82,8 @@ void sys_exec(struct trapframe *tf)
 
     tf->elr_el1 = program_start;
 
+    enable_preemption();
+
     return;
 }
 
@@ -83,8 +98,9 @@ void sys_exit()
 
 void sys_fork(struct trapframe *tf)
 {
-    int parent_pid = get_current_task();
+    disable_preemption();
 
+    int parent_pid = get_current_task();
     int child_pid = thread_create((void (*)())NULL);
     struct task_struct *child = task_pool[child_pid];
 
@@ -110,6 +126,8 @@ void sys_fork(struct trapframe *tf)
     // setup return values
     tf->x[0] = child_pid;
     child_tf->x[0] = 0;
+
+    enable_preemption();
 
     return;
 }
@@ -137,6 +155,7 @@ int thread_create(void (*function)())
 
     new_task->state = RUNNING;
     new_task->pid = pid;
+    new_task->preemptible = 1;
     new_task->need_schedule = 0;
     new_task->quota = TASK_QUOTA;
 
@@ -196,6 +215,8 @@ void idle_thread()
 
 void sys_schedule()
 {
+    disable_preemption();
+
     int prev_pid = get_current_task();
     int next_pid = prev_pid;
 
@@ -210,6 +231,8 @@ void sys_schedule()
 
     update_current_task(next_pid);
     context_switch(&prev->context, &next->context);
+
+    enable_preemption();
 }
 
 void init_schedule()
@@ -224,7 +247,7 @@ void init_schedule()
 void task_preemption()
 {
     struct task_struct *current = task_pool[get_current_task()];
-    if (current->need_schedule)
+    if (current->preemptible && current->need_schedule)
     {
         current->quota = TASK_QUOTA;
         current->need_schedule = 0;
