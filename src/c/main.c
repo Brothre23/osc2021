@@ -9,15 +9,11 @@
 
 void foo()
 {
-    int counter = 20;
-    while (counter--)
+    for (int i = 0; i < 20; i++)
     {
-        for(int i = 0; i < 100000000; i++) 
-        {
-            if ( i % 20000000 == 0)
-                printf("[FOO] pid: %d %d\n", getpid(), i);
-        }
-        // schedule();
+        int delay = 1000000;
+        while(delay--) {}
+        printf("[FOO] pid: %d %d\n", getpid(), i);
     }
     exit();
 }

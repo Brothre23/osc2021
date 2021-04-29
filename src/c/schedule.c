@@ -158,11 +158,30 @@ int thread_create(void (*function)())
 
 void kill_zombie()
 {
-    char uart_read_buffer[10];
+    for (int i = 1; i < TASK_POOL_SIZE; i++)
+    {
+        if (task_pool[i]->state == ZOMBIE)
+        {
+            printf("process ID: %d killed!\n", i);
+
+            km_free(kstack_pool[i]);
+            kstack_pool[i] = NULL;
+            km_free(ustack_pool[i]);
+            ustack_pool[i] = NULL;
+            km_free(task_pool[i]);
+            task_pool[i] = NULL;
+        }
+    }
+}
+
+void idle_thread()
+{
+    printf("[UART_RAED] please input: \n");
+    char uart_read_buffer[6];
     int read_size = uart_read(uart_read_buffer, 5);
     printf("[UART_READ] %d %s\n", read_size, uart_read_buffer);
 
-    char uart_write_buffer[] = "Hello World !";
+    char *uart_write_buffer = "Hello World !";
     int write_size = uart_write(uart_write_buffer, strlen(uart_write_buffer));
     printf("[UART_WRITE] %d\n", write_size);
 
@@ -170,20 +189,7 @@ void kill_zombie()
 
     while (1)
     {
-        for (int i = 1; i < TASK_POOL_SIZE; i++)
-        {
-            if (task_pool[i]->state == ZOMBIE)
-            {
-                printf("process ID: %d killed!\n", i);
-
-                km_free(kstack_pool[i]);
-                kstack_pool[i] = NULL;
-                km_free(ustack_pool[i]);
-                ustack_pool[i] = NULL;
-                km_free(task_pool[i]);
-                task_pool[i] = NULL;
-            }
-        }
+        kill_zombie();
         schedule();
     }
 }
@@ -211,7 +217,7 @@ void init_schedule()
     for (int i = 0; i < TASK_POOL_SIZE; i++)
         task_pool[i] = NULL;
 
-    int pid = thread_create(kill_zombie);
+    int pid = thread_create(idle_thread);
     update_current_task(pid);
 }
 

@@ -80,9 +80,9 @@ exception_vector_table:
     
     // Current EL with SPx
     .align 7
-    b invalid_handler       // Synchronous
+    b svc_handler           // Synchronous
     .align 7
-    b invalid_handler       // IRQ
+    b timer_handler         // IRQ
     .align 7
     b invalid_handler       // FIQ
     .align 7

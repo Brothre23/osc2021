@@ -195,6 +195,7 @@ void sys_uart_read(struct trapframe *tf)
 
     for (int i = 0; i < size; i++)
         buffer[i] = uart_getc();
+    buffer[size] = '\0';
 
     tf->x[0] = size;
 }
