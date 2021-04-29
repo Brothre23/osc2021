@@ -123,6 +123,7 @@ timer_handler:
     mrs x0, cntpct_el0
     mrs x1, cntfrq_el0
     bl  timer_router
+    bl  task_preemption
     kernel_exit
 
 invalid_hang:
