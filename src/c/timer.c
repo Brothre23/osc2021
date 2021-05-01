@@ -32,7 +32,7 @@ void timer_router(unsigned long cntpct, unsigned long cntfrq)
         if (current->quota <= 0)
             current->need_schedule = 1;
 
-        printf("pid: %d, quota; %d\n", pid, current->quota);
+        printf("pid: %d, remaining quota: %d\n", pid, current->quota);
 
         asm volatile(
             "mrs x0, cntfrq_el0     \n\t"

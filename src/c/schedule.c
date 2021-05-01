@@ -7,9 +7,6 @@
 #include "syscall.h"
 
 struct task_struct *task_pool[TASK_POOL_SIZE];
-void *kstack_pool[TASK_POOL_SIZE];
-void *ustack_pool[TASK_POOL_SIZE];
-unsigned int current_pid;
 
 void delay(unsigned int count)
 {
@@ -60,7 +57,7 @@ void sys_exec(struct trapframe *tf)
 
     // flush user stack
     int pid = get_current_task();
-    unsigned long stack_reset = ustack_pool[pid] + USTACK_SIZE;
+    unsigned long stack_reset = task_pool[pid]->ustack + USTACK_SIZE;
     tf->sp_el0 = stack_reset;
 
     // padding to multiples of 16-bytes
@@ -102,12 +99,13 @@ void sys_fork(struct trapframe *tf)
 
     int parent_pid = get_current_task();
     int child_pid = thread_create((void (*)())NULL);
+    struct task_struct *parent = task_pool[parent_pid];
     struct task_struct *child = task_pool[child_pid];
 
-    char *child_kstack = kstack_pool[child_pid] + KSTACK_SIZE;
-    char *parent_kstack = kstack_pool[parent_pid] + KSTACK_SIZE;
-    char *child_ustack = ustack_pool[child_pid] + USTACK_SIZE;
-    char *parent_ustack = ustack_pool[parent_pid] + USTACK_SIZE;
+    char *child_kstack = child->kstack + KSTACK_SIZE;
+    char *parent_kstack = parent->kstack + KSTACK_SIZE;
+    char *child_ustack = child->ustack + USTACK_SIZE;
+    char *parent_ustack = parent->ustack + USTACK_SIZE;
 
     unsigned long kstack_offset = parent_kstack - (char *)tf;         // how many bytes the kernel stack of the parent thread have used
     unsigned long ustack_offset = parent_ustack - (char *)tf->sp_el0; // how many bytes the user stack of the parent thread have used
@@ -169,8 +167,8 @@ int thread_create(void (*function)())
     new_task_tf->elr_el1 = (unsigned long)function;
 
     task_pool[pid] = new_task;
-    kstack_pool[pid] = (void *)new_task->context.sp - (KSTACK_SIZE - TRAPFRAME_SIZE);
-    ustack_pool[pid] = (void *)new_task_tf->sp_el0 - USTACK_SIZE;
+    new_task->kstack = (void *)new_task->context.sp - (KSTACK_SIZE - TRAPFRAME_SIZE);
+    new_task->ustack = (void *)new_task_tf->sp_el0 - USTACK_SIZE;
 
     return pid;
 }
@@ -183,10 +181,8 @@ void kill_zombie()
         {
             printf("process ID: %d killed!\n", i);
 
-            km_free(kstack_pool[i]);
-            kstack_pool[i] = NULL;
-            km_free(ustack_pool[i]);
-            ustack_pool[i] = NULL;
+            km_free(task_pool[i]->kstack);
+            km_free(task_pool[i]->ustack);
             km_free(task_pool[i]);
             task_pool[i] = NULL;
         }

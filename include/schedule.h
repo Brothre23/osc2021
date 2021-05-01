@@ -37,14 +37,13 @@ struct task_struct
     int preemptible;
     int need_schedule;
     int quota;
+    void *kstack;
+    void *ustack;
     struct cpu_context context;
 };
 
 /* variables defined in schedule.c */
 extern struct task_struct *task_pool[TASK_POOL_SIZE];
-extern void *kstack_pool[TASK_POOL_SIZE];
-extern void *ustack_pool[TASK_POOL_SIZE];
-extern unsigned int current_pid;
 
 /* functions defined in schedule.S */
 unsigned int get_current_task();
