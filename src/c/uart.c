@@ -190,7 +190,7 @@ void putc(void *p, char c)
 
 void sys_uart_read(struct trapframe *tf)
 {
-    char *buffer = tf->x[0];
+    char *buffer = (char *)tf->x[0];
     int size = tf->x[1];
 
     for (int i = 0; i < size; i++)
@@ -202,7 +202,7 @@ void sys_uart_read(struct trapframe *tf)
 
 void sys_uart_write(struct trapframe *tf)
 {
-    char *buffer = tf->x[0];
+    char *buffer = (char *)tf->x[0];
     int size = tf->x[1];
 
     uart_puts(buffer);

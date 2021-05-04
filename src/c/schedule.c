@@ -57,27 +57,27 @@ void sys_exec(struct trapframe *tf)
 
     // flush user stack
     int pid = get_current_task();
-    unsigned long stack_reset = task_pool[pid]->ustack + USTACK_SIZE;
+    unsigned long stack_reset = (unsigned long)(task_pool[pid]->ustack + USTACK_SIZE);
     tf->sp_el0 = stack_reset;
 
     // padding to multiples of 16-bytes
     tf->sp_el0 -= (16 + (argc + argc % 2) * 8);
 
-    *(char **)tf->sp_el0 = tf->sp_el0 + 8;
+    *(char **)tf->sp_el0 = (char *)(tf->sp_el0 + 8);
     for (int i = 0; i < argc; i++)
         *(char **)(tf->sp_el0 + 8 + 8 * i) = argv_backup[i];
     *(char **)(tf->sp_el0 + 8 + 8 * argc) = 0;
 
     km_free(argv_backup);
 
-    tf->x[1] = *(char ***)tf->sp_el0;
+    tf->x[1] = (unsigned long)*(char ***)tf->sp_el0;
 
     // setup argc
     tf->sp_el0 -= 16;
     *(int *)tf->sp_el0 = argc;
     tf->x[0] = argc;
 
-    tf->elr_el1 = program_start;
+    tf->elr_el1 = (unsigned long)program_start;
 
     enable_preemption();
 
@@ -191,15 +191,6 @@ void kill_zombie()
 
 void idle_thread()
 {
-    printf("[UART_RAED] please input: \n");
-    char uart_read_buffer[6];
-    int read_size = uart_read(uart_read_buffer, 5);
-    printf("[UART_READ] %d %s\n", read_size, uart_read_buffer);
-
-    char *uart_write_buffer = "Hello World !";
-    int write_size = uart_write(uart_write_buffer, strlen(uart_write_buffer));
-    printf("[UART_WRITE] %d\n", write_size);
-
     enable_core_timer();
 
     while (1)
