@@ -44,9 +44,15 @@ int main()
     vfs_write(test_1, "HELLO", 5);
     vfs_close(test_1);
 
-    struct file *test_2 = vfs_open("/test.txt", 0);
+    struct file *test_2 = vfs_open("/test.txt", O_APPEND);
+    vfs_write(test_2, "WORLD", 5);
+    vfs_close(test_2);
+
+    struct file *test_3 = vfs_open("/test.txt", 0);
     char buffer[10];
-    vfs_read(test_2, buffer, 5);
+    vfs_read(test_2, buffer, 10);
+    vfs_close(test_3);
+
     printf("%s\n", buffer);
 
     // unsigned int current_pid = get_current_task();

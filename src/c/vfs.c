@@ -55,7 +55,7 @@ struct file *vfs_open(char *path_name, int flags)
     {
         struct file *target_file = construct_file(target_node);
         if (flags & O_APPEND)
-            target_file->f_position = target_file->vnode->f_size + 1;
+            target_file->f_position = target_file->vnode->f_size;
         return target_file;
     }
     else
