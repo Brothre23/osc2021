@@ -10,7 +10,6 @@ extern struct file_operations* tmpfs_f_ops;
 
 struct tmpfs_internal
 {
-    unsigned int file_size;
     unsigned int buffer_size;
     char *content;
 };

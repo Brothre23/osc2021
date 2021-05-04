@@ -86,16 +86,14 @@ int cpio_parse_header(char **ramfs, char *file_name, char **file_content)
 
 void cpio_ls()
 {
-    char file_name[100];
+    char file_name[32];
     char *file_content;
 
     char *ramfs = (char *)0x8000000;
 
     while (1)
     {
-        strset(file_name, '0', 100);
-        strset(file_content, '0', 1000);
-
+        strset(file_name, '0', 32);
         cpio_parse_header(&ramfs, file_name, &file_content);
 
         if ((strcmp(file_name, "TRAILER!!!") == 0))
@@ -108,7 +106,7 @@ void cpio_ls()
 
 void cpio_find_file(char file_name_to_find[])
 {
-    char file_name[100];
+    char file_name[32];
     char *file_content;
 
     char *ramfs = (char *)0x8000000;
@@ -116,8 +114,7 @@ void cpio_find_file(char file_name_to_find[])
 
     while(1)
     {
-        strset(file_name, '0', 100);
-
+        strset(file_name, '0', 32);
         cpio_parse_header(&ramfs, file_name, &file_content);
 
         if ((strcmp(file_name, file_name_to_find) == 0))
@@ -130,7 +127,7 @@ void cpio_find_file(char file_name_to_find[])
     }
 
     if (found)
-        printf(file_content);
+        printf("%s", file_content);
     else
         printf("FILE NOT FOUND!");
 
@@ -140,38 +137,20 @@ void cpio_find_file(char file_name_to_find[])
 void *cpio_run_program(char program_name[])
 {
     char *ramfs = (char *)0x8000000;
-    char file_name[100];
+    char file_name[32], *file_content;
 
-    int file_size, name_size;
+    int file_size;
 
     while (1)
     {
-        strset(file_name, '0', 100);
-
-        struct cpio_newc_header header;
-
-        cpio_read(&ramfs, header.c_magic, 6);
-        ramfs += 48;
-        cpio_read(&ramfs, header.c_filesize, 8);
-        ramfs += 32;
-        cpio_read(&ramfs, header.c_namesize, 8);
-        ramfs += 8;
-
-        name_size = round2four(hex2int(header.c_namesize), 1);
-        file_size = round2four(hex2int(header.c_filesize), 2);
-
-        cpio_read(&ramfs, file_name, name_size);
-        ramfs += file_size;
-
-        file_name[name_size] = '\0';
+        strset(file_name, '0', 32);
+        file_size = cpio_parse_header(&ramfs, file_name, &file_content);
 
         if (strcmp(file_name, program_name) == 0)
             break;
         else if ((strcmp(file_name, "TRAILER!!!") == 0))
             return 0;
     }
-
-    ramfs -= file_size;
 
     char *program_start = NULL;
     if (strcmp(program_name, "argv_test.img") == 0)
@@ -180,7 +159,7 @@ void *cpio_run_program(char program_name[])
         program_start = (char *)0x10B0000;
 
     for (int i = 0; i < file_size; i++)
-        *(program_start + i) = *(ramfs + i);
+        *(program_start + i) = *(file_content + i);
 
     return (void *)program_start;
 }

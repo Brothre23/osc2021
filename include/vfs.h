@@ -3,8 +3,8 @@
 
 #include "list.h"
 
-#define O_CREAT     0
-#define O_APPEND    1
+#define O_CREAT     1
+#define O_APPEND    2
 
 extern struct mount *rootfs;
 
@@ -20,6 +20,7 @@ struct vnode
     struct file_operations *f_ops;
     // dentry may be a list
     struct dentry *dentry;
+    unsigned int f_size;
     void *internal;
 };
 
@@ -54,7 +55,7 @@ struct filesystem
 
 struct file_operations
 {
-    int (*write)(struct file *file, const void *buffer, unsigned int length);
+    int (*write)(struct file *file, void *buffer, unsigned int length);
     int (*read)(struct file *file, void *buffer, unsigned int length);
 };
 
@@ -66,9 +67,9 @@ struct vnode_operations
 
 void init_rootfs();
 int register_filesystem(struct filesystem *fs);
-struct file *vfs_open(const char *tatget_path, int flags);
+struct file *vfs_open(char *path_name, int flags);
 int vfs_close(struct file *file);
-int vfs_write(struct file *file, const void *buffer, unsigned int length);
+int vfs_write(struct file *file, void *buffer, unsigned int length);
 int vfs_read(struct file *file, void *buffer, unsigned int length);
 
 #endif

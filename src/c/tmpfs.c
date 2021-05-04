@@ -3,6 +3,7 @@
 #include "mm.h"
 #include "list.h"
 #include "string.h"
+#include "printf.h"
 
 struct vnode_operations* tmpfs_v_ops;
 struct file_operations* tmpfs_f_ops;
@@ -21,18 +22,18 @@ struct vnode *tmpfs_create_vnode(struct dentry *dentry)
 struct dentry *tmpfs_create_dentry(struct dentry *parent, char *name, int type)
 {
     struct dentry *dentry = (struct dentry *)km_allocation(sizeof(struct dentry));
-    strcpy(dentry->name, name);
-
+    
+    strcpy(name, dentry->name);
     dentry->parent = parent;
     list_init_head(&dentry->list);
     list_init_head(&dentry->children);
     
     if (parent != NULL)
         list_add_tail(&dentry->list, &parent->children);
-    
+
     dentry->vnode = tmpfs_create_vnode(dentry);
     dentry->type = type;
-    
+
     return dentry;
 }
 
@@ -60,8 +61,9 @@ int tmpfs_lookup(struct vnode *directory, struct vnode **target, char *component
     if (strcmp(component_name, "") == 0)
     {
         *target = directory;
-        return 0;
+        return -1;
     }
+
     struct list_head *p = &directory->dentry->children;
     list_for_each(p, &directory->dentry->children)
     {
@@ -72,6 +74,7 @@ int tmpfs_lookup(struct vnode *directory, struct vnode **target, char *component
             return 0;
         }
     }
+
     *target = NULL;
     return -1;
 }
@@ -79,14 +82,14 @@ int tmpfs_lookup(struct vnode *directory, struct vnode **target, char *component
 int tmpfs_create(struct vnode* directory, struct vnode **target, char *compenent_name)
 {
     struct tmpfs_internal *internal = (struct tmpfs_internal *)km_allocation(sizeof(struct tmpfs_internal));
-    internal->file_size = 0;
     internal->buffer_size = INITIAL_BUFFER_SIZE;
     internal->content = (char *)km_allocation(INITIAL_BUFFER_SIZE);
 
     struct dentry *child_dentry = tmpfs_create_dentry(directory->dentry, compenent_name, FILE);
     child_dentry->vnode->internal = (void *)internal;
-
+    
     *target = child_dentry->vnode;
+    
     return 0;
 }
 
@@ -104,15 +107,15 @@ int tmpfs_write(struct file *file, void *buffer, unsigned int length)
         interal->buffer_size *= 2;
     }
 
-    char *target = interal->content[file->f_position];
+    char *target = &interal->content[file->f_position];
     char *source = buffer;
 
     unsigned int i;
     for (i = 0; i < length && source[i] != '\0'; i++)
         target[i] = source[i];
 
-    if (i + file->f_position > interal->file_size)
-        interal->file_size = i + file->f_position;
+    if (i + file->f_position > file->vnode->f_size)
+        file->vnode->f_size = i + file->f_position;
     file->f_position += i;
 
     return i;
@@ -123,10 +126,10 @@ int tmpfs_read(struct file *file, void *buffer, unsigned int length)
     struct tmpfs_internal *interal = (struct tmpfs_internal *)file->vnode->internal;
 
     char *target = buffer;
-    char *source = interal->content[file->f_position];
+    char *source = &interal->content[file->f_position];
 
     unsigned int i;
-    for (i = 0; i < length && i + file->f_position < interal->file_size; i++)
+    for (i = 0; i < length && i + file->f_position < file->vnode->f_size; i++)
         target[i] = source[i];
 
     file->f_position += i;

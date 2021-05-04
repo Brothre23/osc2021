@@ -6,6 +6,7 @@
 #include "schedule.h"
 #include "syscall.h"
 #include "sysregs.h"
+#include "vfs.h"
 
 void foo()
 {
@@ -25,22 +26,32 @@ void user_test()
 
 int main()
 {
-    // printf("Hello World!\n\n");
-    // shell_start();
-
     init_uart();
     init_printf(0, putc);
     init_memory();
     init_schedule();
     init_timer();
+    init_rootfs();
 
-    for (int i = 0; i < 5; i++)
-        thread_create(foo);
-    thread_create(user_test);
+    // printf("Hello World!\n\n");
+    // shell_start();
 
-    unsigned int current_pid = get_current_task();
-    struct task_struct *current_task = task_pool[current_pid];
-    start_context(&current_task->context);
+    // for (int i = 0; i < 5; i++)
+    //     thread_create(foo);
+    // thread_create(user_test);
+
+    struct file *test_1 = vfs_open("/test.txt", O_CREAT);
+    vfs_write(test_1, "HELLO", 5);
+    vfs_close(test_1);
+
+    struct file *test_2 = vfs_open("/test.txt", 0);
+    char buffer[10];
+    vfs_read(test_2, buffer, 5);
+    printf("%s\n", buffer);
+
+    // unsigned int current_pid = get_current_task();
+    // struct task_struct *current_task = task_pool[current_pid];
+    // start_context(&current_task->context);
 
     return 0;
 }
