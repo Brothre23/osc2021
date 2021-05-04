@@ -38,7 +38,6 @@ struct file
     struct vnode* vnode; 
     unsigned int f_position;        // The next read/write position of this opened file
     struct file_operations *f_ops;
-    int flags;
 };
 
 struct mount

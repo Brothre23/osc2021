@@ -50,7 +50,7 @@ int round2four(int origin, int option)
     return answer;
 }
 
-void read(char **address, char *target, int count)
+void cpio_read(char **address, char *target, int count)
 {
     while (count--)
     {
@@ -60,42 +60,43 @@ void read(char **address, char *target, int count)
     }
 }
 
-void cpio_parse_header(char **ramfs, char *file_name, char *file_content)
+int cpio_parse_header(char **ramfs, char *file_name, char **file_content)
 {
     struct cpio_newc_header header;
     int file_size = 0, name_size = 0;
 
-    read(ramfs, header.c_magic, 6);
+    cpio_read(ramfs, header.c_magic, 6);
     (*ramfs) += 48;
-    read(ramfs, header.c_filesize, 8);
+    cpio_read(ramfs, header.c_filesize, 8);
     (*ramfs) += 32;
-    read(ramfs, header.c_namesize, 8);
+    cpio_read(ramfs, header.c_namesize, 8);
     (*ramfs) += 8;
 
     name_size = round2four(hex2int(header.c_namesize), 1);
     file_size = round2four(hex2int(header.c_filesize), 2);
 
-    read(ramfs, file_name, name_size);
-    read(ramfs, file_content, file_size);
+    cpio_read(ramfs, file_name, name_size);
+    *file_content = *ramfs;
+    (*ramfs) += file_size;
 
     file_name[name_size] = '\0';
-    file_content[file_size] = '\0';
+
+    return file_size;
 }
 
 void cpio_ls()
 {
     char file_name[100];
-    char file_content[1000];
+    char *file_content;
 
     char *ramfs = (char *)0x8000000;
-    // char *ramfs = (char *)0x20000000;
 
     while (1)
     {
         strset(file_name, '0', 100);
         strset(file_content, '0', 1000);
 
-        cpio_parse_header(&ramfs, file_name, file_content);
+        cpio_parse_header(&ramfs, file_name, &file_content);
 
         if ((strcmp(file_name, "TRAILER!!!") == 0))
             break;
@@ -108,18 +109,16 @@ void cpio_ls()
 void cpio_find_file(char file_name_to_find[])
 {
     char file_name[100];
-    char file_content[1000];
+    char *file_content;
 
     char *ramfs = (char *)0x8000000;
-    // char *ramfs = (char *)0x20000000;
     int found = 0;
 
     while(1)
     {
         strset(file_name, '0', 100);
-        strset(file_content, '0', 1000);
 
-        cpio_parse_header(&ramfs, file_name, file_content);
+        cpio_parse_header(&ramfs, file_name, &file_content);
 
         if ((strcmp(file_name, file_name_to_find) == 0))
         {
@@ -151,17 +150,17 @@ void *cpio_run_program(char program_name[])
 
         struct cpio_newc_header header;
 
-        read(&ramfs, header.c_magic, 6);
+        cpio_read(&ramfs, header.c_magic, 6);
         ramfs += 48;
-        read(&ramfs, header.c_filesize, 8);
+        cpio_read(&ramfs, header.c_filesize, 8);
         ramfs += 32;
-        read(&ramfs, header.c_namesize, 8);
+        cpio_read(&ramfs, header.c_namesize, 8);
         ramfs += 8;
 
         name_size = round2four(hex2int(header.c_namesize), 1);
         file_size = round2four(hex2int(header.c_filesize), 2);
 
-        read(&ramfs, file_name, name_size);
+        cpio_read(&ramfs, file_name, name_size);
         ramfs += file_size;
 
         file_name[name_size] = '\0';
