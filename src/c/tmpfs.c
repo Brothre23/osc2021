@@ -15,6 +15,7 @@ struct vnode *tmpfs_create_vnode(struct dentry *dentry)
     vnode->dentry = dentry;
     vnode->f_ops = tmpfs_f_ops;
     vnode->v_ops = tmpfs_v_ops;
+    vnode->f_size = 0;
 
     return vnode;
 }
@@ -99,26 +100,32 @@ int tmpfs_write(struct file *file, void *buffer, unsigned int length)
 
     if (length + file->f_position > interal->buffer_size)
     {
-        char *enlarged_content = km_allocation(interal->buffer_size * 2);
+        int new_size = 1;
+        while(new_size < length)
+            new_size *= 2;
+
+        char *enlarged_content = km_allocation(new_size);
         for (int i = 0; i < interal->buffer_size; i++)
             enlarged_content[i] = interal->content[i];
             
         km_free(interal->content);
 
         interal->content = enlarged_content;
-        interal->buffer_size *= 2;
+        interal->buffer_size = new_size;
     }
 
     char *target = &interal->content[file->f_position];
     char *source = buffer;
 
     unsigned int i;
-    for (i = 0; i < length && source[i] != '\0'; i++)
+    for (i = 0; i < length; i++)
         target[i] = source[i];
 
-    if (i + file->f_position > file->vnode->f_size)
-        file->vnode->f_size = i + file->f_position;
     file->f_position += i;
+    if (file->f_position > file->vnode->f_size)
+        file->vnode->f_size = file->f_position;
+
+    printf("[tmpfs_write] buffer size: %d, file_size: %d\n", interal->buffer_size, file->vnode->f_size);
 
     return i;
 }

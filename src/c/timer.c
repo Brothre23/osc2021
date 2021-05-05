@@ -53,8 +53,6 @@ void print_timestamp(unsigned long cntpct, unsigned long cntfrq)
 void init_timer()
 {
     list_init_head(&user_timer_list);
-    // enable_irq();
-    // enable_core_timer();
 }
 
 void sys_set_timeout(struct trapframe *tf)

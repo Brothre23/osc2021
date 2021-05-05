@@ -5,8 +5,9 @@
 #include "timer.h"
 #include "schedule.h"
 #include "syscall.h"
-#include "sysregs.h"
 #include "vfs.h"
+#include "string.h"
+#include "cpio.h"
 
 void foo()
 {
@@ -30,7 +31,6 @@ int main()
     init_printf(0, putc);
     init_memory();
     init_schedule();
-    init_timer();
     init_rootfs();
 
     // printf("Hello World!\n\n");
@@ -40,20 +40,25 @@ int main()
     //     thread_create(foo);
     // thread_create(user_test);
 
-    struct file *test_1 = vfs_open("/test.txt", O_CREAT);
-    vfs_write(test_1, "HELLO", 5);
-    vfs_close(test_1);
+    char file_name[32];
+    char *file_content;
+    char *ramfs = (char *)0x8000000;
+    int file_size;
+    struct file *cpio_file;
 
-    struct file *test_2 = vfs_open("/test.txt", O_APPEND);
-    vfs_write(test_2, "WORLD", 5);
-    vfs_close(test_2);
+    while (1)
+    {
+        strset(file_name, 0, 32);
+        file_name[0] = '/';
+        file_size = cpio_parse_header(&ramfs, file_name + 1, &file_content);
 
-    struct file *test_3 = vfs_open("/test.txt", 0);
-    char buffer[10];
-    vfs_read(test_2, buffer, 10);
-    vfs_close(test_3);
+        if ((strcmp(file_name + 1, "TRAILER!!!") == 0))
+            break;
 
-    printf("%s\n", buffer);
+        cpio_file = vfs_open(file_name, O_CREAT);
+        vfs_write(cpio_file, file_content, file_size);
+        vfs_close(cpio_file);
+    }
 
     // unsigned int current_pid = get_current_task();
     // struct task_struct *current_task = task_pool[current_pid];

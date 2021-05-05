@@ -3,6 +3,7 @@
 
 #include "list.h"
 
+#define O_NORMAL    0
 #define O_CREAT     1
 #define O_APPEND    2
 
