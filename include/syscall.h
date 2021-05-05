@@ -11,6 +11,10 @@
 #define SYS_ENABLE_CORE_TIMER   7
 #define SYS_DISABLE_CORE_TIMER  8
 #define SYS_SET_TIMEOUT         9
+#define SYS_OPEN                10
+#define SYS_CLOSE               11
+#define SYS_READ                12
+#define SYS_WRITE               13
 
 #ifndef __ASSEMBLER__
 
@@ -25,6 +29,10 @@ void schedule();
 void enable_core_timer();
 void disable_core_timer();
 void set_timeout(int second, const char *message);
+int open(char *path_name, int flags);
+int close(int fd);
+int write(int fd, void *buffer, int length);
+int read(int fd, void *buffer, int length);
 
 /* for kernel */
 #include "exception.h"
@@ -43,6 +51,11 @@ void sys_schedule();
 /* functions defined in uart.c */
 void sys_uart_read(struct trapframe *tf);
 void sys_uart_write(struct trapframe *tf);
+/* functions defined in vfs.c */
+void sys_open(struct trapframe *tf);
+void sys_close(struct trapframe *tf);
+void sys_read(struct trapframe *tf);
+void sys_write(struct trapframe *tf);
 
 #endif
 

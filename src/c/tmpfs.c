@@ -94,6 +94,22 @@ int tmpfs_create(struct vnode* directory, struct vnode **target, char *compenent
     return 0;
 }
 
+int tmpfs_read(struct file *file, void *buffer, unsigned int length)
+{
+    struct tmpfs_internal *interal = (struct tmpfs_internal *)file->vnode->internal;
+
+    char *target = buffer;
+    char *source = &interal->content[file->f_position];
+
+    unsigned int i;
+    for (i = 0; i < length && i + file->f_position < file->vnode->f_size; i++)
+        target[i] = source[i];
+
+    file->f_position += i;
+
+    return i;
+}
+
 int tmpfs_write(struct file *file, void *buffer, unsigned int length)
 {
     struct tmpfs_internal *interal = (struct tmpfs_internal *)file->vnode->internal;
@@ -126,22 +142,6 @@ int tmpfs_write(struct file *file, void *buffer, unsigned int length)
         file->vnode->f_size = file->f_position;
 
     printf("[tmpfs_write] buffer size: %d, file_size: %d\n", interal->buffer_size, file->vnode->f_size);
-
-    return i;
-}
-
-int tmpfs_read(struct file *file, void *buffer, unsigned int length)
-{
-    struct tmpfs_internal *interal = (struct tmpfs_internal *)file->vnode->internal;
-
-    char *target = buffer;
-    char *source = &interal->content[file->f_position];
-
-    unsigned int i;
-    for (i = 0; i < length && i + file->f_position < file->vnode->f_size; i++)
-        target[i] = source[i];
-
-    file->f_position += i;
 
     return i;
 }

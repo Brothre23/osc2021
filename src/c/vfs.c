@@ -77,16 +77,6 @@ int vfs_close(struct file* file)
     return 0;
 }
 
-int vfs_write(struct file* file, void* buffer, unsigned int length) 
-{
-    if (file->vnode->dentry->type != FILE) 
-    {
-        printf("Write to non-regular file!\n");
-        return -1;
-    }
-    return file->f_ops->write(file, buffer, length);
-}
-
 int vfs_read(struct file* file, void* buffer, unsigned int length) 
 {
     if (file->vnode->dentry->type != FILE) 
@@ -95,4 +85,14 @@ int vfs_read(struct file* file, void* buffer, unsigned int length)
         return -1;
     }
     return file->f_ops->read(file, buffer, length);
+}
+
+int vfs_write(struct file* file, void* buffer, unsigned int length) 
+{
+    if (file->vnode->dentry->type != FILE) 
+    {
+        printf("Write to non-regular file!\n");
+        return -1;
+    }
+    return file->f_ops->write(file, buffer, length);
 }

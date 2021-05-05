@@ -70,7 +70,7 @@ void init_rootfs();
 int register_filesystem(struct filesystem *fs);
 struct file *vfs_open(char *path_name, int flags);
 int vfs_close(struct file *file);
-int vfs_write(struct file *file, void *buffer, unsigned int length);
 int vfs_read(struct file *file, void *buffer, unsigned int length);
+int vfs_write(struct file *file, void *buffer, unsigned int length);
 
 #endif

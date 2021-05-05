@@ -22,7 +22,7 @@ int tmpfs_lookup(struct vnode *directory, struct vnode **target, char *component
 int tmpfs_create(struct vnode *directory, struct vnode **target, char *compenent_name);
 
 // file operations
-int tmpfs_write(struct file *file, void *buffer, unsigned int length);
 int tmpfs_read(struct file *file, void *buffer, unsigned int length);
+int tmpfs_write(struct file *file, void *buffer, unsigned int length);
 
 #endif

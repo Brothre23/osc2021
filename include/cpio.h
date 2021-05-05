@@ -3,7 +3,7 @@
 
 int hex2int(char *hex);
 int round2four(int origin, int option);
-void read(char **address, char *target, int count);
+void cpio_read(char **address, char *target, int count);
 
 struct cpio_newc_header
 {
