@@ -162,6 +162,12 @@ int thread_create(void (*function)())
     new_task->context.sp = (unsigned long)km_allocation(KSTACK_SIZE) + (KSTACK_SIZE - TRAPFRAME_SIZE);
     new_task->context.fp = new_task->context.sp;
 
+    new_task->opened_file.max_size = INITIAL_FD_TABLE_SIZE;
+    new_task->opened_file.next_fd = 0;
+    new_task->opened_file.fd_table = km_allocation(sizeof(struct file *) * INITIAL_FD_TABLE_SIZE);
+    for (int i = 0; i < INITIAL_FD_TABLE_SIZE; i++)
+        new_task->opened_file.fd_table[i] = NULL;
+
     struct trapframe *new_task_tf = (struct trapframe *)new_task->context.sp;
     new_task_tf->sp_el0 = (unsigned long)km_allocation(USTACK_SIZE) + USTACK_SIZE;
     new_task_tf->elr_el1 = (unsigned long)function;

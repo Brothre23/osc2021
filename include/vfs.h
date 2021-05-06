@@ -3,9 +3,10 @@
 
 #include "list.h"
 
-#define O_NORMAL    0
-#define O_CREAT     1
-#define O_APPEND    2
+#define O_NORMAL                0
+#define O_CREAT                 1
+#define O_APPEND                2
+#define INITIAL_FD_TABLE_SIZE   32
 
 extern struct mount *rootfs;
 
@@ -40,6 +41,13 @@ struct file
     struct vnode* vnode; 
     unsigned int f_position;        // The next read/write position of this opened file
     struct file_operations *f_ops;
+};
+
+struct task_file
+{
+    int max_size;
+    int next_fd;
+    struct file **fd_table;
 };
 
 struct mount

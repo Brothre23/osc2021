@@ -86,6 +86,18 @@ void syscall_router(int sys_call_n, struct trapframe* tf)
         case SYS_SET_TIMEOUT:
             sys_set_timeout(tf);
             break;
+        case SYS_OPEN:
+            sys_open(tf);
+            break;
+        case SYS_CLOSE:
+            sys_close(tf);
+            break;
+        case SYS_READ:
+            sys_read(tf);
+            break;
+        case SYS_WRITE:
+            sys_write(tf);
+            break;
         default:
             break;
     }

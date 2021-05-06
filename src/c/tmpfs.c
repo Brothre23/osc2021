@@ -141,7 +141,5 @@ int tmpfs_write(struct file *file, void *buffer, unsigned int length)
     if (file->f_position > file->vnode->f_size)
         file->vnode->f_size = file->f_position;
 
-    printf("[tmpfs_write] buffer size: %d, file_size: %d\n", interal->buffer_size, file->vnode->f_size);
-
     return i;
 }

@@ -25,6 +25,31 @@ void user_test()
     exec("argv_test.img", argv);
 }
 
+void vfs_test()
+{
+    char buffer[100];
+
+    int a = open("/hello", O_CREAT);
+    int b = open("/world", O_CREAT);
+
+    write(a, "Hello ", 6);
+    write(b, "World!", 6);
+    
+    close(a);
+    close(b);
+    
+    b = open("/hello", 0);
+    a = open("/world", 0);
+    
+    int size = 0;
+    size += read(b, buffer, 100);
+    size += read(a, buffer + size, 100);
+    
+    printf("%s\n", buffer); // should be Hello World!
+    printf("END!\n");
+    exit();
+}
+
 int main()
 {
     init_uart();
@@ -35,10 +60,6 @@ int main()
 
     // printf("Hello World!\n\n");
     // shell_start();
-
-    // for (int i = 0; i < 5; i++)
-    //     thread_create(foo);
-    // thread_create(user_test);
 
     char file_name[32];
     char *file_content;
@@ -60,9 +81,11 @@ int main()
         vfs_close(cpio_file);
     }
 
-    // unsigned int current_pid = get_current_task();
-    // struct task_struct *current_task = task_pool[current_pid];
-    // start_context(&current_task->context);
+    thread_create(vfs_test);
+
+    unsigned int current_pid = get_current_task();
+    struct task_struct *current_task = task_pool[current_pid];
+    start_context(&current_task->context);
 
     return 0;
 }

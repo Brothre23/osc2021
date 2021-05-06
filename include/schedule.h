@@ -6,6 +6,8 @@
 #define USTACK_SIZE 4096
 #define TASK_QUOTA 5
 
+#include "vfs.h"
+
 struct cpu_context
 {
     unsigned long x19;
@@ -39,6 +41,7 @@ struct task_struct
     int quota;
     void *kstack;
     void *ustack;
+    struct task_file opened_file;
     struct cpu_context context;
 };
 
