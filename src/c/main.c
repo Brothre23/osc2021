@@ -34,7 +34,7 @@ void vfs_test()
 
     write(a, "Hello ", 6);
     write(b, "World!", 6);
-    
+
     close(a);
     close(b);
     
@@ -44,9 +44,13 @@ void vfs_test()
     int size = 0;
     size += read(b, buffer, 100);
     size += read(a, buffer + size, 100);
-    
+
+    close(b);
+    close(a);
+
     printf("%s\n", buffer); // should be Hello World!
     printf("END!\n");
+
     exit();
 }
 

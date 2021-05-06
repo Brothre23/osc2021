@@ -137,7 +137,7 @@ void sys_open(struct trapframe *tf)
         if (!found)
         {
             int new_table_size = current_task->opened_file.max_size * 2;
-            struct task_file **new_fd_table = km_allocation(sizeof(struct task_file *) * new_table_size);
+            struct file **new_fd_table = km_allocation(sizeof(struct file *) * new_table_size);
             for (int i = 0; i < current_task->opened_file.max_size; i++)
                 new_fd_table[i] = current_task->opened_file.fd_table[i];
             for (int i = current_task->opened_file.max_size; i < new_table_size; i++)
