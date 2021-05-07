@@ -24,5 +24,6 @@ int tmpfs_create(struct dentry *parent, struct dentry **target, char *compenent_
 // file operations
 int tmpfs_read(struct file *file, void *buffer, unsigned int length);
 int tmpfs_write(struct file *file, void *buffer, unsigned int length);
+char **tmpfs_read_directory(struct dentry *directory);
 
 #endif

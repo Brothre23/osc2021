@@ -98,6 +98,9 @@ void syscall_router(int sys_call_n, struct trapframe* tf)
         case SYS_WRITE:
             sys_write(tf);
             break;
+        case SYS_READ_DIRECTORY:
+            sys_read_directory(tf);
+            break;
         default:
             break;
     }

@@ -83,3 +83,9 @@ write:
     mov x8, SYS_WRITE
     svc 2
     ret
+
+.global read_directory
+read_directory:
+    mov x8, SYS_READ_DIRECTORY
+    svc 2
+    ret

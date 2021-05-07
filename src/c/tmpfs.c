@@ -42,6 +42,8 @@ int tmpfs_register()
     tmpfs_v_ops = (struct vnode_operations*)km_allocation(sizeof(struct vnode_operations));
     tmpfs_v_ops->lookup = tmpfs_lookup;
     tmpfs_v_ops->create = tmpfs_create;
+    tmpfs_v_ops->read_directory = tmpfs_read_directory;
+
     tmpfs_f_ops = (struct file_operations*)km_allocation(sizeof(struct file_operations));
     tmpfs_f_ops->read = tmpfs_read;
     tmpfs_f_ops->write = tmpfs_write;
@@ -141,4 +143,26 @@ int tmpfs_write(struct file *file, void *buffer, unsigned int length)
         file->dentry->vnode->f_size = file->f_position;
 
     return i;
+}
+
+char **tmpfs_read_directory(struct dentry *parent)
+{
+    char **directories;
+    int counter = 0;
+
+    struct list_head *p = &parent->children;
+    list_for_each(p, &parent->children)
+        counter++;
+    directories = km_allocation(sizeof(char *) * counter);
+
+    counter = 0;
+    list_for_each(p, &parent->children)
+    {
+        struct dentry *dentry = list_entry(p, struct dentry, list);
+        directories[counter] = dentry->name;
+        counter++;
+    }
+    directories[counter] = 0;
+
+    return directories;
 }

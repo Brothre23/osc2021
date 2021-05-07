@@ -53,6 +53,12 @@ struct file *vfs_open(char *path_name, int flags)
     struct dentry *root_dentry = rootfs->root;
     struct dentry *target_dentry;
 
+    if (strcmp(path_name, "/") == 0)
+    {
+        struct file *target_file = construct_file(root_dentry);
+        return target_file;
+    }
+
     int file_exist = root_dentry->vnode->v_ops->lookup(root_dentry, &target_dentry, path_name + 1);
     if (file_exist == 0)
     {
@@ -98,6 +104,16 @@ int vfs_write(struct file* file, void* buffer, unsigned int length)
         return -1;
     }
     return file->f_ops->write(file, buffer, length);
+}
+
+char **vfs_read_directory(struct dentry *dentry)
+{
+    if (dentry->type != DIRECTORY)
+    {
+        printf("LS on non-directory!");
+        return (char **)NULL;
+    }
+    return dentry->vnode->v_ops->read_directory(dentry);
 }
 
 void sys_open(struct trapframe *tf)
@@ -219,5 +235,26 @@ void sys_write(struct trapframe *tf)
     }
     tf->x[0] = vfs_write(file, buffer, length);
     
+    return;
+}
+
+void sys_read_directory(struct trapframe *tf)
+{
+    int fd = tf->x[0];
+    if (fd < 0)
+    {
+        tf->x[0] = -1;
+        return;
+    }
+
+    struct task_struct *current_task = task_pool[get_current_task()];
+    struct file *file = current_task->opened_file.fd_table[fd];
+    if (file == NULL)
+    {
+        tf->x[0] = -1;
+        return;
+    }
+    tf->x[0] = (unsigned long)vfs_read_directory(file->dentry);
+
     return;
 }

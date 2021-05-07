@@ -48,8 +48,13 @@ void vfs_test()
     close(b);
     close(a);
 
-    printf("%s\n", buffer); // should be Hello World!
-    printf("END!\n");
+    printf("%s\n", buffer);
+
+    int test = open("/", 0);
+    char **diretories = read_directory(test);
+    for (int i = 0; (char *)diretories[i] != 0;i++)
+        printf("%s ", diretories[i]);
+    printf("\n");
 
     exit();
 }

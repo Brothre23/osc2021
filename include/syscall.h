@@ -15,6 +15,7 @@
 #define SYS_CLOSE               11
 #define SYS_READ                12
 #define SYS_WRITE               13
+#define SYS_READ_DIRECTORY      14
 
 #ifndef __ASSEMBLER__
 
@@ -33,6 +34,7 @@ int open(char *path_name, int flags);
 int close(int fd);
 int write(int fd, void *buffer, int length);
 int read(int fd, void *buffer, int length);
+char **read_directory(int fd);
 
 /* for kernel */
 #include "exception.h"
@@ -56,6 +58,7 @@ void sys_open(struct trapframe *tf);
 void sys_close(struct trapframe *tf);
 void sys_read(struct trapframe *tf);
 void sys_write(struct trapframe *tf);
+void sys_read_directory(struct trapframe *tf);
 
 #endif
 
