@@ -18,8 +18,8 @@ int tmpfs_register();
 int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount);
 
 // vnode operations
-int tmpfs_lookup(struct vnode *directory, struct vnode **target, char *component_name);
-int tmpfs_create(struct vnode *directory, struct vnode **target, char *compenent_name);
+int tmpfs_lookup(struct dentry *parent, struct dentry **target, char *component_name);
+int tmpfs_create(struct dentry *parent, struct dentry **target, char *compenent_name);
 
 // file operations
 int tmpfs_read(struct file *file, void *buffer, unsigned int length);

@@ -20,8 +20,6 @@ struct vnode
 {
     struct vnode_operations *v_ops;
     struct file_operations *f_ops;
-    // dentry may be a list
-    struct dentry *dentry;
     unsigned int f_size;
     void *internal;
 };
@@ -38,8 +36,8 @@ struct dentry
 
 struct file
 {
-    struct vnode* vnode; 
-    unsigned int f_position;        // The next read/write position of this opened file
+    struct dentry *dentry;
+    unsigned int f_position; // The next read/write position of this opened file
     struct file_operations *f_ops;
 };
 
@@ -70,8 +68,8 @@ struct file_operations
 
 struct vnode_operations
 {
-    int (*lookup)(struct vnode *directory, struct vnode **target, char *component_name);
-    int (*create)(struct vnode *directory, struct vnode **target, char *component_name);
+    int (*lookup)(struct dentry *parent, struct dentry **target, char *component_name);
+    int (*create)(struct dentry *parent, struct dentry **target, char *component_name);
 };
 
 void init_rootfs();

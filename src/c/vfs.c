@@ -31,14 +31,14 @@ int register_filesystem(struct filesystem* fs)
     return -1;
 }
 
-struct file *construct_file(struct vnode *target_node)
+struct file *construct_file(struct dentry *target_dentry)
 {
     struct file *target_file = (struct file *)km_allocation(sizeof(struct file));
-    
-    target_file->f_ops = target_node->f_ops;
-    target_file->vnode = target_node;
+
+    target_file->f_ops = target_dentry->vnode->f_ops;
+    target_file->dentry = target_dentry;
     target_file->f_position = 0;
-    
+
     return target_file;
 }
 
@@ -50,23 +50,23 @@ struct file *vfs_open(char *path_name, int flags)
         return NULL;
     }
 
-    struct vnode *root_node = rootfs->root->vnode;
-    struct vnode *target_node;
+    struct dentry *root_dentry = rootfs->root;
+    struct dentry *target_dentry;
 
-    int file_exist = root_node->v_ops->lookup(root_node, &target_node, path_name + 1);
+    int file_exist = root_dentry->vnode->v_ops->lookup(root_dentry, &target_dentry, path_name + 1);
     if (file_exist == 0)
     {
-        struct file *target_file = construct_file(target_node);
+        struct file *target_file = construct_file(target_dentry);
         if (flags & O_APPEND)
-            target_file->f_position = target_file->vnode->f_size;
+            target_file->f_position = target_file->dentry->vnode->f_size;
         return target_file;
     }
     else
     {
         if (flags & O_CREAT)
         {
-            root_node->v_ops->create(root_node, &target_node, path_name + 1);
-            struct file *target_file = construct_file(target_node);
+            root_dentry->vnode->v_ops->create(root_dentry, &target_dentry, path_name + 1);
+            struct file *target_file = construct_file(target_dentry);
             return target_file;
         }
         else
@@ -82,7 +82,7 @@ int vfs_close(struct file* file)
 
 int vfs_read(struct file* file, void* buffer, unsigned int length) 
 {
-    if (file->vnode->dentry->type != FILE) 
+    if (file->dentry->type != FILE) 
     {
         printf("Read from non-regular file!\n");
         return -1;
@@ -92,7 +92,7 @@ int vfs_read(struct file* file, void* buffer, unsigned int length)
 
 int vfs_write(struct file* file, void* buffer, unsigned int length) 
 {
-    if (file->vnode->dentry->type != FILE) 
+    if (file->dentry->type != FILE) 
     {
         printf("Write to non-regular file!\n");
         return -1;
