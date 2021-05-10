@@ -82,5 +82,6 @@ int vfs_read(struct file *file, void *buffer, unsigned int length);
 int vfs_write(struct file *file, void *buffer, unsigned int length);
 char **vfs_read_directory(struct dentry *parent);
 int vfs_make_directory(char *path_name);
+int parse_path_name(struct dentry **target, char *component_name, char *path_name);
 
 #endif

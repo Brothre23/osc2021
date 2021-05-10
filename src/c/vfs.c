@@ -50,19 +50,20 @@ struct file *vfs_open(char *path_name, int flags)
         return NULL;
     }
 
-    struct dentry *root_dentry = rootfs->root;
-    struct dentry *target_dentry;
-
     if (strcmp(path_name, "/") == 0)
     {
-        struct file *target_file = construct_file(root_dentry);
+        struct file *target_file = construct_file(rootfs->root);
         return target_file;
     }
 
-    int file_exist = root_dentry->vnode->v_ops->lookup(root_dentry, &target_dentry, path_name + 1);
+    struct dentry *target_dentry, *child_dentry;
+    char component_name[32];
+    parse_path_name(&target_dentry, component_name, path_name);
+
+    int file_exist = target_dentry->vnode->v_ops->lookup(target_dentry, &child_dentry, component_name);
     if (file_exist == 0)
     {
-        struct file *target_file = construct_file(target_dentry);
+        struct file *target_file = construct_file(child_dentry);
         if (flags & O_APPEND)
             target_file->f_position = target_file->dentry->vnode->f_size;
         return target_file;
@@ -71,8 +72,8 @@ struct file *vfs_open(char *path_name, int flags)
     {
         if (flags & O_CREAT)
         {
-            root_dentry->vnode->v_ops->create(root_dentry, &target_dentry, path_name + 1);
-            struct file *target_file = construct_file(target_dentry);
+            target_dentry->vnode->v_ops->create(target_dentry, &child_dentry, component_name);
+            struct file *target_file = construct_file(child_dentry);
             return target_file;
         }
         else
@@ -98,7 +99,7 @@ int vfs_read(struct file* file, void* buffer, unsigned int length)
 
 int vfs_write(struct file* file, void* buffer, unsigned int length) 
 {
-    if (file->dentry->type != FILE) 
+    if (file->dentry->type != FILE)
     {
         printf("Write to non-regular file!\n");
         return -1;
@@ -121,12 +122,14 @@ int vfs_make_directory(char *path_name)
     if (path_name[0] != '/')
     {
         printf("Does not support relative paths!\n");
-        return NULL;
+        return -1;
     }
 
-    struct dentry *parent = rootfs->root;
-    struct dentry *child;
-    return parent->vnode->v_ops->make_directory(parent, &child, path_name + 1);
+    struct dentry *target_dentry, *child_dentry;
+    char component_name[32];
+    parse_path_name(&target_dentry, component_name, path_name);
+
+    return target_dentry->vnode->v_ops->make_directory(target_dentry, &child_dentry, component_name);
 }
 
 void sys_open(struct trapframe *tf)
@@ -274,6 +277,80 @@ void sys_read_directory(struct trapframe *tf)
 
 void sys_make_directory(struct trapframe *tf)
 {
-    char *path_name = tf->x[0];
+    char *path_name = (char *)tf->x[0];
     tf->x[0] = vfs_make_directory(path_name);
+}
+
+int parse_path_name_recursive(struct dentry *parent, struct dentry **target, char *component_name, char *path_name)
+{
+    strset(component_name, 0, 32);
+    int i = 0;
+    while (path_name[i])
+    {
+        if (path_name[i] == '/')
+            break;
+
+        component_name[i] = path_name[i];
+        i++;
+    }
+
+    // the last character in path_name is '/'
+    if (strcmp(component_name, "") == 0)
+    {
+        *target = parent;
+        return 0;
+    }
+    else if (strcmp(component_name, ".") == 0)
+        return parse_path_name_recursive(parent, target, component_name, path_name + i + 1);
+    else if (strcmp(component_name, "..") == 0)
+    {
+        if (parent->parent == NULL)
+            return 0;
+        return parse_path_name_recursive(parent->parent, target, component_name, path_name + i + 1);
+    }
+    else 
+    {
+        int result = parent->vnode->v_ops->lookup(parent, target, component_name);
+        if (result == -1)
+        {
+            // a new file or a new directory
+            if (!path_name[i])
+            {
+                *target = parent;
+                return 0;
+            }
+            // component_name is in the middle of path_name and does not exist
+            else
+                return -1;
+        }
+        else
+        {
+            // an existing directory
+            if ((*target)->type == DIRECTORY)
+            {
+                parent = *target;
+                return parse_path_name_recursive(parent, target, component_name, path_name + i + 1);
+            }
+            // an existing file
+            else
+            {
+                *target = parent;
+                return 0;
+            }
+        }
+    }
+
+    return 0;
+}
+
+int parse_path_name(struct dentry **target, char *component_name, char *path_name)
+{
+    if (path_name[0] == '/')
+    {
+        struct dentry *root_node = rootfs->root;
+        return parse_path_name_recursive(root_node, target, component_name, path_name + 1);
+    }
+    else {}
+
+    return 0;
 }

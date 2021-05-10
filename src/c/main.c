@@ -27,6 +27,7 @@ void user_test()
 
 void vfs_test()
 {
+    // test for single-level file
     char buffer[100];
 
     int a = open("/hello", O_CREAT);
@@ -40,7 +41,7 @@ void vfs_test()
     
     b = open("/hello", 0);
     a = open("/world", 0);
-    
+
     int size = 0;
     size += read(b, buffer, 100);
     size += read(a, buffer + size, 100);
@@ -48,14 +49,31 @@ void vfs_test()
     close(b);
     close(a);
 
-    printf("%s\n", buffer);
+    printf("\n%s\n", buffer);
 
-    // int test = open("/", 0);
-    // char **diretories = read_directory(test);
-    // for (int i = 0; (char *)diretories[i] != 0;i++)
-    //     printf("%s ", diretories[i]);
-    // printf("\n");
-    make_directory("/test_directory");
+    // test for multi-level file
+    make_directory("/folder");
+
+    int fd_meow = open("/folder/meow", O_CREAT);
+    write(fd_meow, "meow_test", 9);
+    close(fd_meow);
+
+    char buffer_meow[9];
+    fd_meow = open("/folder/meow", 0);
+    read(fd_meow, buffer_meow, 9);
+    close(fd_meow);
+
+    printf("%s\n", buffer_meow);
+
+    // test for reading directory
+    int root = open("/", 0);
+    char **diretories = read_directory(root);
+    for (int i = 0; (char *)diretories[i] != 0;i++)
+        printf("%s ", diretories[i]);
+    printf("\n");
+    close(root);
+
+    printf("\nEND!\n\n");
 
     exit();
 }

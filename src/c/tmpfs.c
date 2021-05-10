@@ -61,12 +61,6 @@ int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount)
 
 int tmpfs_lookup(struct dentry *parent, struct dentry **target, char *component_name)
 {
-    if (strcmp(component_name, "") == 0)
-    {
-        *target = parent;
-        return -1;
-    }
-
     struct list_head *p = &parent->children;
     list_for_each(p, &parent->children)
     {
@@ -168,8 +162,8 @@ char **tmpfs_read_directory(struct dentry *parent)
     return directories;
 }
 
-int tmpfs_make_directory(struct dentry *parent, struct dentry **child, char *path_name)
+int tmpfs_make_directory(struct dentry *parent, struct dentry **child, char *component_name)
 {
-    *child = tmpfs_create_dentry(parent, path_name, DIRECTORY);
+    *child = tmpfs_create_dentry(parent, component_name, DIRECTORY);
     return 0;
 }
