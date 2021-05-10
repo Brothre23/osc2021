@@ -168,6 +168,8 @@ int thread_create(void (*function)())
     for (int i = 0; i < INITIAL_FD_TABLE_SIZE; i++)
         new_task->opened_file.fd_table[i] = NULL;
 
+    new_task->cwd = rootfs->root;
+
     struct trapframe *new_task_tf = (struct trapframe *)new_task->context.sp;
     new_task_tf->sp_el0 = (unsigned long)km_allocation(USTACK_SIZE) + USTACK_SIZE;
     new_task_tf->elr_el1 = (unsigned long)function;

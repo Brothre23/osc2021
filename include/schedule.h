@@ -39,9 +39,13 @@ struct task_struct
     int preemptible;
     int need_schedule;
     int quota;
+    
     void *kstack;
     void *ustack;
+
+    struct dentry *cwd;
     struct task_file opened_file;
+    
     struct cpu_context context;
 };
 

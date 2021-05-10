@@ -104,6 +104,9 @@ void syscall_router(int sys_call_n, struct trapframe* tf)
         case SYS_MAKE_DIRECTORY:
             sys_make_directory(tf);
             break;
+        case SYS_CHANGE_DIRECTORY:
+            sys_change_directory(tf);
+            break;
         default:
             break;
     }

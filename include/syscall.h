@@ -17,6 +17,7 @@
 #define SYS_WRITE               13
 #define SYS_READ_DIRECTORY      14
 #define SYS_MAKE_DIRECTORY      15
+#define SYS_CHANGE_DIRECTORY    16
 
 #ifndef __ASSEMBLER__
 
@@ -37,6 +38,7 @@ int write(int fd, void *buffer, int length);
 int read(int fd, void *buffer, int length);
 char **read_directory(int fd);
 int make_directory(char *path_name);
+int change_directory(char *path_name);
 
 /* for kernel */
 #include "exception.h"
@@ -62,6 +64,7 @@ void sys_read(struct trapframe *tf);
 void sys_write(struct trapframe *tf);
 void sys_read_directory(struct trapframe *tf);
 void sys_make_directory(struct trapframe *tf);
+void sys_change_directory(struct trapframe *tf);
 
 #endif
 

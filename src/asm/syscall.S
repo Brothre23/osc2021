@@ -95,3 +95,9 @@ make_directory:
     mov x8, SYS_MAKE_DIRECTORY
     svc 2
     ret
+
+.global change_directory
+change_directory:
+    mov x8, SYS_CHANGE_DIRECTORY
+    svc 2
+    ret
