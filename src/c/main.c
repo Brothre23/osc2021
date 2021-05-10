@@ -50,11 +50,12 @@ void vfs_test()
 
     printf("%s\n", buffer);
 
-    int test = open("/", 0);
-    char **diretories = read_directory(test);
-    for (int i = 0; (char *)diretories[i] != 0;i++)
-        printf("%s ", diretories[i]);
-    printf("\n");
+    // int test = open("/", 0);
+    // char **diretories = read_directory(test);
+    // for (int i = 0; (char *)diretories[i] != 0;i++)
+    //     printf("%s ", diretories[i]);
+    // printf("\n");
+    make_directory("/test_directory");
 
     exit();
 }

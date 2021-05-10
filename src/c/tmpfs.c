@@ -43,6 +43,7 @@ int tmpfs_register()
     tmpfs_v_ops->lookup = tmpfs_lookup;
     tmpfs_v_ops->create = tmpfs_create;
     tmpfs_v_ops->read_directory = tmpfs_read_directory;
+    tmpfs_v_ops->make_directory = tmpfs_make_directory;
 
     tmpfs_f_ops = (struct file_operations*)km_allocation(sizeof(struct file_operations));
     tmpfs_f_ops->read = tmpfs_read;
@@ -165,4 +166,10 @@ char **tmpfs_read_directory(struct dentry *parent)
     directories[counter] = 0;
 
     return directories;
+}
+
+int tmpfs_make_directory(struct dentry *parent, struct dentry **child, char *path_name)
+{
+    *child = tmpfs_create_dentry(parent, path_name, DIRECTORY);
+    return 0;
 }

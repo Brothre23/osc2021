@@ -89,3 +89,9 @@ read_directory:
     mov x8, SYS_READ_DIRECTORY
     svc 2
     ret
+
+.global make_directory
+make_directory:
+    mov x8, SYS_MAKE_DIRECTORY
+    svc 2
+    ret

@@ -116,6 +116,19 @@ char **vfs_read_directory(struct dentry *dentry)
     return dentry->vnode->v_ops->read_directory(dentry);
 }
 
+int vfs_make_directory(char *path_name)
+{
+    if (path_name[0] != '/')
+    {
+        printf("Does not support relative paths!\n");
+        return NULL;
+    }
+
+    struct dentry *parent = rootfs->root;
+    struct dentry *child;
+    return parent->vnode->v_ops->make_directory(parent, &child, path_name + 1);
+}
+
 void sys_open(struct trapframe *tf)
 {
     char *path_name = (char *)tf->x[0];
@@ -257,4 +270,10 @@ void sys_read_directory(struct trapframe *tf)
     tf->x[0] = (unsigned long)vfs_read_directory(file->dentry);
 
     return;
+}
+
+void sys_make_directory(struct trapframe *tf)
+{
+    char *path_name = tf->x[0];
+    tf->x[0] = vfs_make_directory(path_name);
 }

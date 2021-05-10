@@ -71,6 +71,7 @@ struct vnode_operations
     int (*lookup)(struct dentry *parent, struct dentry **target, char *component_name);
     int (*create)(struct dentry *parent, struct dentry **target, char *component_name);
     char **(*read_directory)(struct dentry *parent);
+    int (*make_directory)(struct dentry *parent, struct dentry **child, char *path_name);
 };
 
 void init_rootfs();
@@ -80,5 +81,6 @@ int vfs_close(struct file *file);
 int vfs_read(struct file *file, void *buffer, unsigned int length);
 int vfs_write(struct file *file, void *buffer, unsigned int length);
 char **vfs_read_directory(struct dentry *parent);
+int vfs_make_directory(char *path_name);
 
 #endif
