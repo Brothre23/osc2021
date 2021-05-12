@@ -107,6 +107,12 @@ void syscall_router(int sys_call_n, struct trapframe* tf)
         case SYS_CHANGE_DIRECTORY:
             sys_change_directory(tf);
             break;
+        case SYS_MOUNT:
+            sys_mount(tf);
+            break;
+        case SYS_UNMOUNT:
+            sys_unmount(tf);
+            break;
         default:
             break;
     }

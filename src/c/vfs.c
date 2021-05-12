@@ -18,7 +18,7 @@ void init_rootfs()
 
     tmpfs->setup_mount = tmpfs_setup_mount;
     rootfs = (struct mount*)km_allocation(sizeof(struct mount));
-    tmpfs->setup_mount(tmpfs, rootfs);
+    tmpfs->setup_mount(tmpfs, rootfs, "/");
 }
 
 int register_filesystem(struct filesystem* fs) 
@@ -132,6 +132,65 @@ int vfs_change_directory(char *path_name)
         return -1;
 
     task_pool[get_current_task()]->cwd = target_dentry;
+    return 0;
+}
+
+int vfs_mount(char *device, char *mounting_point, char *filesystem)
+{
+    struct dentry *mounting_dentry;
+    char component_name[32];
+    // invalid path
+    if (parse_path_name(&mounting_dentry, component_name, mounting_point) == -1)
+        return -1;
+
+    if (strcmp(filesystem, "tmpfs"))
+    {
+        struct filesystem* tmpfs = (struct filesystem*)km_allocation(sizeof(struct filesystem));
+        tmpfs->name = (char*)km_allocation(sizeof(char) * strlen(device));
+        strcpy(tmpfs->name, device);
+
+        tmpfs->setup_mount = tmpfs_setup_mount;
+        struct mount *mount = (struct mount*)km_allocation(sizeof(struct mount));
+        tmpfs->setup_mount(tmpfs, mount, component_name);
+
+        // set the parent dentry so we can go back
+        mount->root->parent = mounting_dentry;
+        // set the mounting point
+        mounting_dentry->mounting_point = mount;
+        // chain the newly mounted file system on its parent's children list
+        list_add_tail(&mount->root->list, &mounting_dentry->children);
+    }
+}
+
+int vfs_unmount(char *mounting_point)
+{
+    struct dentry *mounting_dentry;
+    char component_name[32];
+    // invalid path
+    if (parse_path_name(&mounting_dentry, component_name, mounting_point) == -1)
+        return -1;
+    // invalid mounting point
+    if (mounting_dentry->parent->mounting_point == NULL)
+        return -1;
+
+    struct list_head *p;
+    list_for_each(p, &mounting_dentry->children) 
+    {
+        struct dentry *dentry = list_entry(p, struct dentry, list);
+        list_crop(p, p);
+        km_free(dentry);
+    }
+
+    struct dentry *parent = mounting_dentry->parent;
+    list_crop(&mounting_dentry->list, &mounting_dentry->list);
+
+    km_free(parent->mounting_point->fs->name);
+    km_free(parent->mounting_point->fs);
+    km_free(parent->mounting_point->root);
+    km_free(parent->mounting_point);
+
+    parent->mounting_point = NULL;
+
     return 0;
 }
 
@@ -290,6 +349,20 @@ void sys_change_directory(struct trapframe *tf)
     tf->x[0] = vfs_change_directory(path_name);
 }
 
+void sys_mount(struct trapframe* tf) 
+{
+    const char* device = (char*) tf->x[0];
+    const char* mounting_point = (char*) tf->x[1];
+    const char* filesystem = (char*) tf->x[2];
+    tf->x[0] = vfs_mount(device, mounting_point, filesystem);
+}
+
+void sys_unmount(struct trapframe* tf) 
+{
+    const char* mounting_point = (char*) tf->x[0];
+    tf->x[0] = vfs_unmount(mounting_point);
+}
+
 int parse_path_name_recursive(struct dentry *parent, struct dentry **target, char *component_name, char *path_name)
 {
     strset(component_name, 0, 32);
@@ -332,6 +405,12 @@ int parse_path_name_recursive(struct dentry *parent, struct dentry **target, cha
     }
     else
     {
+        // jump to a new mounting point
+        if ((*target)->mounting_point != NULL)
+        {
+            parent = *target;
+            return parse_path_name_recursive(parent->mounting_point->root, target, component_name, path_name + i + 1);
+        }
         // an existing directory
         if ((*target)->type == DIRECTORY)
         {

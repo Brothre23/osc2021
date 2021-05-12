@@ -33,6 +33,7 @@ struct dentry *tmpfs_create_dentry(struct dentry *parent, char *name, int type)
 
     dentry->vnode = tmpfs_create_vnode(dentry);
     dentry->type = type;
+    dentry->mounting_point = NULL;
 
     return dentry;
 }
@@ -52,10 +53,10 @@ int tmpfs_register()
     return 0;
 }
 
-int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount) 
+int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount, char *name) 
 {
     mount->fs = fs;
-    mount->root = tmpfs_create_dentry(NULL, "/", DIRECTORY);
+    mount->root = tmpfs_create_dentry(NULL, name, DIRECTORY);
     return 0;
 }
 
@@ -148,7 +149,7 @@ char **tmpfs_read_directory(struct dentry *parent)
     struct list_head *p = &parent->children;
     list_for_each(p, &parent->children)
         counter++;
-    directories = km_allocation(sizeof(char *) * counter);
+    directories = km_allocation(sizeof(char *) * (counter + 1));
 
     counter = 0;
     list_for_each(p, &parent->children)

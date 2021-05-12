@@ -101,3 +101,15 @@ change_directory:
     mov x8, SYS_CHANGE_DIRECTORY
     svc 2
     ret
+
+.global mount
+mount:
+    mov x8, SYS_MOUNT
+    svc 2
+    ret
+
+.global unmount
+unmount:
+    mov x8, SYS_UNMOUNT
+    svc 2
+    ret

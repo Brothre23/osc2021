@@ -15,7 +15,7 @@ struct tmpfs_internal
 };
 
 int tmpfs_register();
-int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount);
+int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount, char *name);
 
 // vnode operations
 int tmpfs_lookup(struct dentry *parent, struct dentry **target, char *component_name);

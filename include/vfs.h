@@ -32,6 +32,7 @@ struct dentry
     struct dentry* parent;
     struct vnode* vnode;
     enum dentry_type type;
+    struct mount *mounting_point;
 };
 
 struct file
@@ -57,7 +58,7 @@ struct mount
 struct filesystem
 {
     char *name;
-    int (*setup_mount)(struct filesystem *fs, struct mount *mount);
+    int (*setup_mount)(struct filesystem *fs, struct mount *mount, char *name);
 };
 
 struct file_operations
@@ -83,6 +84,8 @@ int vfs_write(struct file *file, void *buffer, unsigned int length);
 char **vfs_read_directory(struct dentry *parent);
 int vfs_make_directory(char *path_name);
 int vfs_change_directory(char *path_name);
+int vfs_mount(char *device, char *mounting_point, char *filesystem);
+int vfs_unmount(char *mounting_point);
 int parse_path_name(struct dentry **target, char *component_name, char *path_name);
 
 #endif
