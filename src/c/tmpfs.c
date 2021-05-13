@@ -34,6 +34,7 @@ struct dentry *tmpfs_create_dentry(struct dentry *parent, char *name, int type)
     dentry->vnode = tmpfs_create_vnode(dentry);
     dentry->type = type;
     dentry->mounting_point = NULL;
+    dentry->is_mounted = 0;
 
     return dentry;
 }
@@ -53,10 +54,10 @@ int tmpfs_register()
     return 0;
 }
 
-int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount, char *name) 
+int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount) 
 {
     mount->fs = fs;
-    mount->root = tmpfs_create_dentry(NULL, name, DIRECTORY);
+    mount->root = tmpfs_create_dentry(NULL, "/", DIRECTORY);
     return 0;
 }
 

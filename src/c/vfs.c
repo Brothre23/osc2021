@@ -18,7 +18,7 @@ void init_rootfs()
 
     tmpfs->setup_mount = tmpfs_setup_mount;
     rootfs = (struct mount*)km_allocation(sizeof(struct mount));
-    tmpfs->setup_mount(tmpfs, rootfs, "/");
+    tmpfs->setup_mount(tmpfs, rootfs);
 }
 
 int register_filesystem(struct filesystem* fs) 
@@ -68,7 +68,7 @@ struct file *vfs_open(char *path_name, int flags)
             return target_file;
         }
         // opening a directory
-        else if (target_dentry->type == DIRECTORY)
+        else if (target_dentry->type == DIRECTORY && strcmp(component_name, "") == 0)
         {
             struct file *target_file = construct_file(target_dentry);
             return target_file;
@@ -154,10 +154,11 @@ int vfs_mount(char *device, char *mounting_point, char *filesystem)
 
         tmpfs->setup_mount = tmpfs_setup_mount;
         struct mount *mount = (struct mount*)km_allocation(sizeof(struct mount));
-        tmpfs->setup_mount(tmpfs, mount, component_name);
+        tmpfs->setup_mount(tmpfs, mount);
 
-        mount->root = mounting_dentry;
-        mounting_dentry->parent->mounting_point = mount;
+        mounting_dentry->is_mounted = 1;
+        mounting_dentry->mounting_point = mount;
+        mounting_dentry->mounting_point->root->parent = mounting_dentry;
 
         return 0;
     }
@@ -170,27 +171,26 @@ int vfs_unmount(char *mounting_point)
     // invalid path
     if (parse_path_name(&mounting_dentry, component_name, mounting_point) == -1)
         return -1;
+    mounting_dentry = mounting_dentry->parent;
     // invalid mounting point
-    if (mounting_dentry->parent->mounting_point == NULL)
+    if (mounting_dentry->is_mounted == 0)
         return -1;
 
     struct list_head *p;
-    list_for_each(p, &mounting_dentry->children)
+    list_for_each(p, &mounting_dentry->mounting_point->root->children)
     {
         struct dentry *dentry = list_entry(p, struct dentry, list);
         list_crop(p, p);
         km_free(dentry);
     }
 
-    struct dentry *parent = mounting_dentry->parent;
-    list_crop(&mounting_dentry->list, &mounting_dentry->list);
+    km_free(mounting_dentry->mounting_point->fs->name);
+    km_free(mounting_dentry->mounting_point->fs);
+    km_free(mounting_dentry->mounting_point->root);
+    km_free(mounting_dentry->mounting_point);
 
-    km_free(parent->mounting_point->fs->name);
-    km_free(parent->mounting_point->fs);
-    km_free(parent->mounting_point->root);
-    km_free(parent->mounting_point);
-
-    parent->mounting_point = NULL;
+    mounting_dentry->mounting_point = NULL;
+    mounting_dentry->is_mounted = 0;
 
     return 0;
 }
@@ -364,7 +364,7 @@ void sys_unmount(struct trapframe* tf)
     tf->x[0] = vfs_unmount(mounting_point);
 }
 
-int parse_path_name_recursive(struct dentry *parent, struct dentry **target, char *component_name, char *path_name)
+int parse_path_name_recursive(struct dentry *current, struct dentry **target, char *component_name, char *path_name)
 {
     strset(component_name, 0, 32);
     int i = 0;
@@ -379,25 +379,28 @@ int parse_path_name_recursive(struct dentry *parent, struct dentry **target, cha
 
     if (strcmp(component_name, "") == 0)
     {
-        *target = parent;
+        *target = current;
         return 0;
     }
     if (strcmp(component_name, ".") == 0)
-        return parse_path_name_recursive(parent, target, component_name, path_name + i + 1);
+        return parse_path_name_recursive(current, target, component_name, path_name + i + 1);
     if (strcmp(component_name, "..") == 0)
     {
-        if (parent->parent == NULL)
+        if (current->parent == NULL)
             return 0;
-        return parse_path_name_recursive(parent->parent, target, component_name, path_name + i + 1);
+        // return to parent->parent if crossing mounting point
+        if (current->parent->is_mounted)
+            return parse_path_name_recursive(current->parent->parent, target, component_name, path_name + i + 1);
+        return parse_path_name_recursive(current->parent, target, component_name, path_name + i + 1);
     }
 
-    int result = parent->vnode->v_ops->lookup(parent, target, component_name);
+    int result = current->vnode->v_ops->lookup(current, target, component_name);
     if (result == -1)
     {
         // a new file or a new directory
         if (!path_name[i])
         {
-            *target = parent;
+            *target = current;
             return 0;
         }
         // component_name is in the middle of path_name and does not exist
@@ -407,21 +410,21 @@ int parse_path_name_recursive(struct dentry *parent, struct dentry **target, cha
     else
     {
         // jump to a new mounting point
-        if ((*target)->mounting_point != NULL)
+        if ((*target)->is_mounted)
         {
-            parent = *target;
-            return parse_path_name_recursive(parent->mounting_point->root, target, component_name, path_name + i + 1);
+            current = *target;
+            return parse_path_name_recursive(current->mounting_point->root, target, component_name, path_name + i + 1);
         }
         // an existing directory
         if ((*target)->type == DIRECTORY)
         {
-            parent = *target;
-            return parse_path_name_recursive(parent, target, component_name, path_name + i + 1);
+            current = *target;
+            return parse_path_name_recursive(current, target, component_name, path_name + i + 1);
         }
         // an existing file
         else
         {
-            *target = parent;
+            *target = current;
             return 0;
         }
     }

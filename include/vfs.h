@@ -33,6 +33,7 @@ struct dentry
     struct vnode* vnode;
     enum dentry_type type;
     struct mount *mounting_point;
+    int is_mounted;
 };
 
 struct file
@@ -58,7 +59,7 @@ struct mount
 struct filesystem
 {
     char *name;
-    int (*setup_mount)(struct filesystem *fs, struct mount *mount, char *name);
+    int (*setup_mount)(struct filesystem *fs, struct mount *mount);
 };
 
 struct file_operations
