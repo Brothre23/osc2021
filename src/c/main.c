@@ -34,7 +34,7 @@ void vfs_test()
     close(b);
     close(a);
 
-    printf("\n%s\n", buffer);
+    printf("\ntest for single-level file:\n%s\n\n", buffer);
 
     // test for multi-level file
     make_directory("folder");
@@ -52,35 +52,34 @@ void vfs_test()
     read(fd_multi_level, multi_level_buffer, 16);
     close(fd_multi_level);
 
-    printf("%s\n", multi_level_buffer);
+    printf("test for multi-level file:\n%s\n\n", multi_level_buffer);
 
-    // // test for reading directory
-    int fd_folder = open("../folder", 0);
+    // test for reading directory
+    int fd_folder = open("..", 0);
     char **diretories = read_directory(fd_folder);
-    for (int i = 0; (char *)diretories[i] != 0;i++)
+    printf("test for reading directory:\n");
+    for (int i = 0; (char *)diretories[i] != 0; i++)
         printf("%s ", diretories[i]);
-    printf("\n");
+    printf("\n\n");
     close(fd_folder);
 
     // test for mounting
+    make_directory("/mnt");
     mount("tmpfs", "/mnt", "tmpfs");
     int fd_mount_test = open("/mnt/file", O_CREAT);
     write(fd_mount_test, "MEOWMEOWMEOW MOUNT", 18);
     close(fd_mount_test);
 
-    char mount_test_buffer[18];
-    strset(mount_test_buffer, 0, 18);
+    char mount_test_buffer[30];
+    strset(mount_test_buffer, 0, 30);
     fd_mount_test = open("/mnt/file", 0);
     read(fd_mount_test, mount_test_buffer, 18);
-    printf("%s\n", mount_test_buffer);
+    printf("test for mounting:\n%s\n\n", mount_test_buffer);
 
     // test for unmounting
     unmount("/mnt");
     fd_mount_test = open("/mnt/file", 0);
-    printf("%d\n", fd_mount_test);
-
-    // end of test
-    printf("\nEND!!!!!\n\n");
+    printf("test for unmounting:\n%d\n\n", fd_mount_test);
 
     exit();
 }

@@ -139,8 +139,11 @@ int vfs_mount(char *device, char *mounting_point, char *filesystem)
 {
     struct dentry *mounting_dentry;
     char component_name[32];
-    // invalid path
+    // non-existing parent directory
     if (parse_path_name(&mounting_dentry, component_name, mounting_point) == -1)
+        return -1;
+    // non-existing mounting directory
+    if (strcmp(component_name, "") != 0)
         return -1;
 
     if (strcmp(filesystem, "tmpfs"))
@@ -153,12 +156,10 @@ int vfs_mount(char *device, char *mounting_point, char *filesystem)
         struct mount *mount = (struct mount*)km_allocation(sizeof(struct mount));
         tmpfs->setup_mount(tmpfs, mount, component_name);
 
-        // set the parent dentry so we can go back
-        mount->root->parent = mounting_dentry;
-        // set the mounting point
-        mounting_dentry->mounting_point = mount;
-        // chain the newly mounted file system on its parent's children list
-        list_add_tail(&mount->root->list, &mounting_dentry->children);
+        mount->root = mounting_dentry;
+        mounting_dentry->parent->mounting_point = mount;
+
+        return 0;
     }
 }
 
@@ -174,7 +175,7 @@ int vfs_unmount(char *mounting_point)
         return -1;
 
     struct list_head *p;
-    list_for_each(p, &mounting_dentry->children) 
+    list_for_each(p, &mounting_dentry->children)
     {
         struct dentry *dentry = list_entry(p, struct dentry, list);
         list_crop(p, p);
