@@ -1,5 +1,6 @@
 #include "vfs.h"
 #include "tmpfs.h"
+#include "fat32.h"
 #include "printf.h"
 #include "mm.h"
 #include "string.h"
@@ -148,6 +149,8 @@ int vfs_mount(char *device, char *mounting_point, char *filesystem)
 
     if (strcmp(filesystem, "tmpfs"))
         return tmpfs_mount(&mounting_dentry, device);
+    if (strcmp(filesystem, "fat32"))
+        return fat32_mount(&mounting_dentry, device);
 }
 
 int vfs_unmount(char *mounting_point)

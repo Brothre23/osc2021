@@ -22,6 +22,7 @@ int main()
     init_memory();
     init_schedule();
     init_rootfs();
+    init_sd();
 
     // printf("Hello World!\n\n");
     // shell_start();
@@ -45,6 +46,10 @@ int main()
         vfs_write(cpio_file, file_content, file_size);
         vfs_close(cpio_file);
     }
+
+    char mounting_point[8] = "/sdp1";
+    vfs_make_directory(mounting_point);
+    vfs_mount("sdcard", mounting_point, "fat32");
 
     thread_create(vfs_test);
 

@@ -3,8 +3,8 @@
 #include "mm.h"
 
 struct fat32_metadata fat32_metadata;
-struct vnode_operations *fat32_v_ops;
-struct file_operations *fat32_f_ops;
+struct vnode_operations *fat32_v_ops = NULL;
+struct file_operations *fat32_f_ops = NULL;
 
 int fat32_mount(struct dentry **mounting_dentry, char *device)
 {   
@@ -44,15 +44,20 @@ int fat32_mount(struct dentry **mounting_dentry, char *device)
 
 int fat32_register()
 {
-    fat32_v_ops = (struct vnode_operations*)km_allocation(sizeof(struct vnode_operations));
-    fat32_v_ops->lookup = NULL;
-    fat32_v_ops->create = NULL;
-    fat32_v_ops->read_directory = NULL;
-    fat32_v_ops->make_directory = NULL;
+    if (fat32_f_ops == NULL && fat32_v_ops == NULL)
+    {
+        fat32_v_ops = (struct vnode_operations*)km_allocation(sizeof(struct vnode_operations));
+        fat32_v_ops->lookup = NULL;
+        fat32_v_ops->create = NULL;
+        fat32_v_ops->read_directory = NULL;
+        fat32_v_ops->make_directory = NULL;
 
-    fat32_f_ops = (struct file_operations*)km_allocation(sizeof(struct file_operations));
-    fat32_f_ops->read = NULL;
-    fat32_f_ops->write = NULL;
+        fat32_f_ops = (struct file_operations*)km_allocation(sizeof(struct file_operations));
+        fat32_f_ops->read = NULL;
+        fat32_f_ops->write = NULL;
+    }
+
+    return 0;
 }
 
 int fat32_setup_mount(struct filesystem* fs, struct mount* mount) 
