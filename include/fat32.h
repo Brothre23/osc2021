@@ -7,7 +7,7 @@
 
 int fat32_mount(struct dentry **mounting_dentry, char *device);
 int fat32_register();
-int fat32_setup_mount(struct filesystem *fs, struct mount *mount);
+int fat32_setup_mount(struct filesystem *fs, struct mount *mount, char *device);
 
 struct mbr_partition
 {

@@ -50,6 +50,7 @@ struct task_file
 
 struct mount
 {
+    char *device;
     struct dentry *root;
     struct filesystem *fs;
 };
@@ -57,7 +58,7 @@ struct mount
 struct filesystem
 {
     char *name;
-    int (*setup_mount)(struct filesystem *fs, struct mount *mount);
+    int (*setup_mount)(struct filesystem *fs, struct mount *mount, char *device);
 };
 
 struct file_operations

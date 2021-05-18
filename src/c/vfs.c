@@ -13,21 +13,26 @@ struct mount* rootfs;
 void init_rootfs() 
 {   
     struct filesystem* tmpfs = (struct filesystem*)km_allocation(sizeof(struct filesystem));
-    tmpfs->name = (char*)km_allocation(sizeof(char) * 6);
-    strcpy(tmpfs->name, "tmpfs");
+    tmpfs->name = (char*)km_allocation(sizeof(char) * 5);
+    strcpy("tmpfs", tmpfs->name);
     register_filesystem(tmpfs);
 
     tmpfs->setup_mount = tmpfs_setup_mount;
     rootfs = (struct mount*)km_allocation(sizeof(struct mount));
-    tmpfs->setup_mount(tmpfs, rootfs);
+    tmpfs->setup_mount(tmpfs, rootfs, "tmpfs");
 }
 
 int register_filesystem(struct filesystem* fs) 
 {
-    if (strcmp(fs->name, "tmpfs") == 0) 
+    if (strcmp(fs->name, "tmpfs") == 0)
     {
         printf("registering tmpfs\n");
         return tmpfs_register();
+    }
+    if (strcmp(fs->name, "fat32") == 0)
+    {
+        printf("registering fat32\n");
+        return fat32_register();
     }
     return -1;
 }
@@ -147,9 +152,9 @@ int vfs_mount(char *device, char *mounting_point, char *filesystem)
     if (strcmp(component_name, "") != 0)
         return -1;
 
-    if (strcmp(filesystem, "tmpfs"))
+    if (strcmp(filesystem, "tmpfs") == 0)
         return tmpfs_mount(&mounting_dentry, device);
-    if (strcmp(filesystem, "fat32"))
+    if (strcmp(filesystem, "fat32") == 0)
         return fat32_mount(&mounting_dentry, device);
 }
 

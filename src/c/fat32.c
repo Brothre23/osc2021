@@ -1,13 +1,15 @@
 #include "fat32.h"
 #include "sdhost.h"
 #include "mm.h"
+#include "printf.h"
+#include "string.h"
 
 struct fat32_metadata fat32_metadata;
 struct vnode_operations *fat32_v_ops = NULL;
 struct file_operations *fat32_f_ops = NULL;
 
 int fat32_mount(struct dentry **mounting_dentry, char *device)
-{   
+{
     // read MBR
     char sector[BLOCK_SIZE];
     read_block(0, sector);
@@ -29,13 +31,13 @@ int fat32_mount(struct dentry **mounting_dentry, char *device)
     fat32_metadata.sector_per_cluster = boot_sector->logical_sector_per_cluster;
 
     struct filesystem* fat32 = (struct filesystem*)km_allocation(sizeof(struct filesystem));
-    fat32->name = (char*)km_allocation(sizeof(char) * 6);
-    strcpy(fat32->name, device);
+    fat32->name = (char*)km_allocation(sizeof(char) * 5);
+    strcpy("fat32", fat32->name);
     register_filesystem(fat32);
 
     fat32->setup_mount = fat32_setup_mount;
     struct mount *mount = (struct mount*)km_allocation(sizeof(struct mount));
-    fat32->setup_mount(fat32, mount);
+    fat32->setup_mount(fat32, mount, device);
 
     (*mounting_dentry)->is_mounted = 1;
     (*mounting_dentry)->mounting_point = mount;
@@ -60,7 +62,7 @@ int fat32_register()
     return 0;
 }
 
-int fat32_setup_mount(struct filesystem* fs, struct mount* mount) 
+int fat32_setup_mount(struct filesystem* fs, struct mount* mount, char *device) 
 {
     return 0;
 }
