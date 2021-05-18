@@ -52,7 +52,7 @@ int tmpfs_mount(struct dentry **mounting_dentry, char *device)
 
     (*mounting_dentry)->is_mounted = 1;
     (*mounting_dentry)->mounting_point = mount;
-    (*mounting_dentry)->mounting_point->root->parent = mounting_dentry;
+    (*mounting_dentry)->mounting_point->root->parent = *mounting_dentry;
 
     return 0;
 }
