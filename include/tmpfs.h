@@ -3,9 +3,6 @@
 
 #include "vfs.h"
 
-extern struct vnode_operations* tmpfs_v_ops;
-extern struct file_operations* tmpfs_f_ops;
-
 #define INITIAL_BUFFER_SIZE 256
 
 struct tmpfs_internal
@@ -14,6 +11,7 @@ struct tmpfs_internal
     char *content;
 };
 
+int tmpfs_mount(struct dentry **mounting_dentry, char *device);
 int tmpfs_register();
 int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount);
 

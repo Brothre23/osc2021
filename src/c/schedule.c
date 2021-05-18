@@ -7,6 +7,7 @@
 #include "syscall.h"
 
 struct task_struct *task_pool[TASK_POOL_SIZE];
+extern struct mount *rootfs;
 
 void delay(unsigned int count)
 {

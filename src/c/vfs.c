@@ -147,21 +147,7 @@ int vfs_mount(char *device, char *mounting_point, char *filesystem)
         return -1;
 
     if (strcmp(filesystem, "tmpfs"))
-    {
-        struct filesystem* tmpfs = (struct filesystem*)km_allocation(sizeof(struct filesystem));
-        tmpfs->name = (char*)km_allocation(sizeof(char) * strlen(device));
-        strcpy(tmpfs->name, device);
-
-        tmpfs->setup_mount = tmpfs_setup_mount;
-        struct mount *mount = (struct mount*)km_allocation(sizeof(struct mount));
-        tmpfs->setup_mount(tmpfs, mount);
-
-        mounting_dentry->is_mounted = 1;
-        mounting_dentry->mounting_point = mount;
-        mounting_dentry->mounting_point->root->parent = mounting_dentry;
-
-        return 0;
-    }
+        return tmpfs_mount(&mounting_dentry, device);
 }
 
 int vfs_unmount(char *mounting_point)

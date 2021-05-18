@@ -8,8 +8,6 @@
 #define O_APPEND                2
 #define INITIAL_FD_TABLE_SIZE   32
 
-extern struct mount *rootfs;
-
 enum dentry_type
 {
     FILE,
