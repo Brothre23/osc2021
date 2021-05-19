@@ -8,9 +8,8 @@ struct fat32_metadata fat32_metadata;
 struct vnode_operations *fat32_v_ops = NULL;
 struct file_operations *fat32_f_ops = NULL;
 
-int fat32_mount(struct dentry **mounting_dentry, char *device)
+int fat32_mount(struct dentry **mounting_dentry, const char *device)
 {
-    // read MBR
     char sector[BLOCK_SIZE];
     read_block(0, sector);
 
@@ -39,9 +38,15 @@ int fat32_mount(struct dentry **mounting_dentry, char *device)
     struct mount *mount = (struct mount*)km_allocation(sizeof(struct mount));
     fat32->setup_mount(fat32, mount, device);
 
+    struct fat32_internal* internal = (struct fat32_internal*)km_allocation(sizeof(struct fat32_internal));
+    internal->first_cluster = boot_sector->root_dir_start_cluster_num;
+
     (*mounting_dentry)->is_mounted = 1;
     (*mounting_dentry)->mounting_point = mount;
     (*mounting_dentry)->mounting_point->root->parent = *mounting_dentry;
+    (*mounting_dentry)->mounting_point->root->vnode->internal = (void *)internal;
+
+    return 0;
 }
 
 int fat32_register()
@@ -62,7 +67,7 @@ int fat32_register()
     return 0;
 }
 
-int fat32_setup_mount(struct filesystem* fs, struct mount* mount, char *device) 
+int fat32_setup_mount(struct filesystem* fs, struct mount* mount, const char *device) 
 {
     return 0;
 }

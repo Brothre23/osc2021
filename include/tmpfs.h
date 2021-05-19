@@ -11,9 +11,9 @@ struct tmpfs_internal
     char *content;
 };
 
-int tmpfs_mount(struct dentry **mounting_dentry, char *device);
+int tmpfs_mount(struct dentry **mounting_dentry, const char *device);
 int tmpfs_register();
-int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount, char *device);
+int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount, const char *device);
 
 // vnode operations
 int tmpfs_lookup(struct dentry *parent, struct dentry **target, char *component_name);

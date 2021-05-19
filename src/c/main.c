@@ -8,10 +8,11 @@
 #include "vfs.h"
 #include "string.h"
 #include "cpio.h"
+#include "sdhost.h"
 
 void vfs_test()
 {
-    char *vfs_argv[] = {"vfs_test", 0};
+    const char *vfs_argv[] = {"vfs_test", 0};
     exec("vfs_test.img", vfs_argv);
 }
 

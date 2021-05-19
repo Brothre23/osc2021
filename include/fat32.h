@@ -5,9 +5,9 @@
 
 #define BLOCK_SIZE 512
 
-int fat32_mount(struct dentry **mounting_dentry, char *device);
+int fat32_mount(struct dentry **mounting_dentry, const char *device);
 int fat32_register();
-int fat32_setup_mount(struct filesystem *fs, struct mount *mount, char *device);
+int fat32_setup_mount(struct filesystem *fs, struct mount *mount, const char *device);
 
 struct mbr_partition
 {
@@ -81,6 +81,13 @@ struct fat32_metadata
     unsigned int data_region_blk_idx;
     unsigned int first_cluster;
     unsigned char sector_per_cluster;
+};
+
+struct fat32_internal
+{
+    unsigned int first_cluster;
+    unsigned int dentry_cluster;
+    unsigned int size;
 };
 
 #endif

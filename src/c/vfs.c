@@ -132,7 +132,7 @@ int vfs_make_directory(char *path_name)
 
 int vfs_change_directory(char *path_name)
 {
-    struct dentry *target_dentry, *child_dentry;
+    struct dentry *target_dentry;
     char component_name[32];
     if (parse_path_name(&target_dentry, component_name, path_name) == -1)
         return -1;
@@ -141,7 +141,7 @@ int vfs_change_directory(char *path_name)
     return 0;
 }
 
-int vfs_mount(char *device, char *mounting_point, char *filesystem)
+int vfs_mount(const char *device, const char *mounting_point, const char *filesystem)
 {
     struct dentry *mounting_dentry;
     char component_name[32];
@@ -156,9 +156,11 @@ int vfs_mount(char *device, char *mounting_point, char *filesystem)
         return tmpfs_mount(&mounting_dentry, device);
     if (strcmp(filesystem, "fat32") == 0)
         return fat32_mount(&mounting_dentry, device);
+
+    return -1;
 }
 
-int vfs_unmount(char *mounting_point)
+int vfs_unmount(const char *mounting_point)
 {
     struct dentry *mounting_dentry;
     char component_name[32];
@@ -358,7 +360,7 @@ void sys_unmount(struct trapframe* tf)
     tf->x[0] = vfs_unmount(mounting_point);
 }
 
-int parse_path_name_recursive(struct dentry *current, struct dentry **target, char *component_name, char *path_name)
+int parse_path_name_recursive(struct dentry *current, struct dentry **target, char *component_name, const char *path_name)
 {
     strset(component_name, 0, 32);
     int i = 0;
@@ -427,7 +429,7 @@ int parse_path_name_recursive(struct dentry *current, struct dentry **target, ch
 }
 
 // this function will stop at the innermost valid directory
-int parse_path_name(struct dentry **target, char *component_name, char *path_name)
+int parse_path_name(struct dentry **target, char *component_name, const char *path_name)
 {
     if (path_name[0] == '/')
         return parse_path_name_recursive(rootfs->root, target, component_name, path_name + 1);

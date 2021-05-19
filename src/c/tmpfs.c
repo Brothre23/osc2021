@@ -39,7 +39,7 @@ struct dentry *tmpfs_create_dentry(struct dentry *parent, char *name, int type)
     return dentry;
 }
 
-int tmpfs_mount(struct dentry **mounting_dentry, char *device)
+int tmpfs_mount(struct dentry **mounting_dentry, const char *device)
 {
     struct filesystem* tmpfs = (struct filesystem*)km_allocation(sizeof(struct filesystem));
     tmpfs->name = (char*)km_allocation(sizeof(char) * 5);
@@ -75,7 +75,7 @@ int tmpfs_register()
     return 0;
 }
 
-int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount, char *device) 
+int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount, const char *device) 
 {
     mount->fs = fs;
     mount->device = km_allocation(sizeof(char) * strlen(device));

@@ -58,7 +58,7 @@ struct mount
 struct filesystem
 {
     char *name;
-    int (*setup_mount)(struct filesystem *fs, struct mount *mount, char *device);
+    int (*setup_mount)(struct filesystem *fs, struct mount *mount, const char *device);
 };
 
 struct file_operations
@@ -84,8 +84,8 @@ int vfs_write(struct file *file, void *buffer, unsigned int length);
 char **vfs_read_directory(struct dentry *parent);
 int vfs_make_directory(char *path_name);
 int vfs_change_directory(char *path_name);
-int vfs_mount(char *device, char *mounting_point, char *filesystem);
-int vfs_unmount(char *mounting_point);
-int parse_path_name(struct dentry **target, char *component_name, char *path_name);
+int vfs_mount(const char *device, const char *mounting_point, const char *filesystem);
+int vfs_unmount(const char *mounting_point);
+int parse_path_name(struct dentry **target, char *component_name, const char *path_name);
 
 #endif
