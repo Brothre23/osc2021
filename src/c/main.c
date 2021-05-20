@@ -28,37 +28,41 @@ int main()
     // printf("Hello World!\n\n");
     // shell_start();
 
-    char file_name[32];
-    char *file_content;
-    char *ramfs = (char *)0x8000000;
-    int file_size;
-    struct file *cpio_file;
+    // char file_name[32];
+    // char *file_content;
+    // char *ramfs = (char *)0x8000000;
+    // int file_size;
+    // struct file *cpio_file;
 
-    while (1)
-    {
-        strset(file_name, 0, 32);
-        file_name[0] = '/';
-        file_size = cpio_parse_header(&ramfs, file_name + 1, &file_content);
+    // while (1)
+    // {
+    //     strset(file_name, 0, 32);
+    //     file_name[0] = '/';
+    //     file_size = cpio_parse_header(&ramfs, file_name + 1, &file_content);
 
-        if ((strcmp(file_name + 1, "TRAILER!!!") == 0))
-            break;
+    //     if ((strcmp(file_name + 1, "TRAILER!!!") == 0))
+    //         break;
 
-        cpio_file = vfs_open(file_name, O_CREAT);
-        vfs_write(cpio_file, file_content, file_size);
-        vfs_close(cpio_file);
-    }
+    //     cpio_file = vfs_open(file_name, O_CREAT);
+    //     vfs_write(cpio_file, file_content, file_size);
+    //     vfs_close(cpio_file);
+    // }
 
     char mounting_point[8] = "/sdp1";
     vfs_make_directory(mounting_point);
     vfs_mount("sdcard", mounting_point, "fat32");
 
-    thread_create(vfs_test);
+    struct file *file_0 = vfs_open("/sdp1/KERNEL8.IMG", 0);
+    struct file *file_1 = vfs_open("/sdp1/START.ELF", 0);
+    printf("%x %x\n", file_0, file_1);
 
-    printf("jump to user program\n");
+    // thread_create(vfs_test);
 
-    unsigned int current_pid = get_current_task();
-    struct task_struct *current_task = task_pool[current_pid];
-    start_context(&current_task->context);
+    // printf("jump to user program\n");
+
+    // unsigned int current_pid = get_current_task();
+    // struct task_struct *current_task = task_pool[current_pid];
+    // start_context(&current_task->context);
 
     return 0;
 }

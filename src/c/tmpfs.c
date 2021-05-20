@@ -59,18 +59,18 @@ int tmpfs_mount(struct dentry **mounting_dentry, const char *device)
 
 int tmpfs_register() 
 {
-    if (tmpfs_f_ops == NULL && tmpfs_v_ops == NULL)
-    {
-        tmpfs_v_ops = (struct vnode_operations*)km_allocation(sizeof(struct vnode_operations));
-        tmpfs_v_ops->lookup = tmpfs_lookup;
-        tmpfs_v_ops->create = tmpfs_create;
-        tmpfs_v_ops->read_directory = tmpfs_read_directory;
-        tmpfs_v_ops->make_directory = tmpfs_make_directory;
+    if (tmpfs_f_ops != NULL && tmpfs_v_ops != NULL)
+        return 0;
 
-        tmpfs_f_ops = (struct file_operations*)km_allocation(sizeof(struct file_operations));
-        tmpfs_f_ops->read = tmpfs_read;
-        tmpfs_f_ops->write = tmpfs_write;
-    }
+    tmpfs_v_ops = (struct vnode_operations*)km_allocation(sizeof(struct vnode_operations));
+    tmpfs_v_ops->lookup = tmpfs_lookup;
+    tmpfs_v_ops->create = tmpfs_create;
+    tmpfs_v_ops->read_directory = tmpfs_read_directory;
+    tmpfs_v_ops->make_directory = tmpfs_make_directory;
+
+    tmpfs_f_ops = (struct file_operations*)km_allocation(sizeof(struct file_operations));
+    tmpfs_f_ops->read = tmpfs_read;
+    tmpfs_f_ops->write = tmpfs_write;
 
     return 0;
 }
