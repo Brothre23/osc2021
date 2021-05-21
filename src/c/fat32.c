@@ -210,7 +210,6 @@ int fat32_load_dentry(struct dentry *parent, char *component_name)
 int fat32_read(struct file *file, void *buffer, unsigned int length)
 {
     struct fat32_internal *internal = (struct fat32_internal *)file->dentry->vnode->internal;
-    unsigned long long f_position_backup = file->f_position;
     unsigned long long current_cluster = internal->first_cluster;
     int remaining_length = length;
     int fat[FAT_ENTRY_PER_BLOCK];
