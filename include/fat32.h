@@ -5,6 +5,7 @@
 
 #define BLOCK_SIZE 512
 #define FAT_ENTRY_PER_BLOCK (BLOCK_SIZE / sizeof(int))
+#define END_OF_CLUSTER 0xFFFFFFF
 
 int fat32_mount(struct dentry **mounting_dentry, const char *device);
 int fat32_register();
@@ -12,7 +13,7 @@ int fat32_setup_mount(struct filesystem *fs, struct mount *mount, const char *de
 
 // vnode operations
 int fat32_lookup(struct dentry *parent, struct dentry **target, char *component_name);
-int fat32_load_dentry(struct dentry *parent, char component_name);
+int fat32_load_dentry(struct dentry *parent, char *component_name);
 
 // file operations
 int fat32_read(struct file *file, void *buffer, unsigned int length);

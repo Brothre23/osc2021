@@ -52,9 +52,13 @@ int main()
     vfs_make_directory(mounting_point);
     vfs_mount("sdcard", mounting_point, "fat32");
 
-    struct file *file_0 = vfs_open("/sdp1/KERNEL8.IMG", 0);
-    struct file *file_1 = vfs_open("/sdp1/START.ELF", 0);
-    printf("%x %x\n", file_0, file_1);
+    struct file *test = vfs_open("/sdp1/APPLE.SH", 0);
+    printf("%x %s\n", test, test->dentry->name);
+    char buffer[512];
+    strset(buffer, 0, 512);
+
+    vfs_read(test, buffer, 64);
+    printf("%s\n", buffer);
 
     // thread_create(vfs_test);
 

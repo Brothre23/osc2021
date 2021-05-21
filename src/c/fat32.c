@@ -103,7 +103,7 @@ int fat32_register()
     fat32_v_ops->make_directory = NULL;
 
     fat32_f_ops = (struct file_operations *)km_allocation(sizeof(struct file_operations));
-    fat32_f_ops->read = NULL;
+    fat32_f_ops->read = fat32_read;
     fat32_f_ops->write = NULL;
 
     return 0;
@@ -152,7 +152,7 @@ int fat32_lookup(struct dentry *parent, struct dentry **target, char *component_
     return -1;
 }
 
-int fat32_load_dentry(struct dentry *parent, char component_name)
+int fat32_load_dentry(struct dentry *parent, char *component_name)
 {
     struct fat32_internal *internal = (struct fat32_internal *)parent->vnode->internal;
     unsigned char sector[BLOCK_SIZE];
@@ -204,4 +204,34 @@ int fat32_load_dentry(struct dentry *parent, char component_name)
     }
 
     return found;
+}
+
+int fat32_read(struct file *file, void *buffer, unsigned int length)
+{
+    struct fat32_internal* internal = (struct fat32_internal*)file->dentry->vnode->internal;
+    unsigned long long f_position_backup = file->f_position;
+    unsigned long long current_cluster = internal->first_cluster;
+    int remaining_length = length;
+    int fat[FAT_ENTRY_PER_BLOCK];
+    char internal_buffer[BLOCK_SIZE];
+
+    while (remaining_length > 0 && current_cluster != END_OF_CLUSTER)
+    {
+        read_block(get_cluster_block_index(current_cluster), internal_buffer);
+        int read_size = (remaining_length < BLOCK_SIZE) ? remaining_length : BLOCK_SIZE;
+        remaining_length -= read_size;
+
+        for (int i = 0; i < read_size; i++)
+            ((char *)buffer)[file->f_position + i] = internal_buffer[i];
+
+        file->f_position += read_size;
+
+        if (remaining_length > 0)
+        {
+            read_block(get_fat_block_index(current_cluster), fat);
+            current_cluster = fat[current_cluster % FAT_ENTRY_PER_BLOCK];
+        }
+    }
+
+    return file->f_position - f_position_backup;
 }
