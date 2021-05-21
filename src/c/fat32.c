@@ -215,7 +215,7 @@ int fat32_read(struct file *file, void *buffer, unsigned int length)
     int remaining_length = length;
     int fat[FAT_ENTRY_PER_BLOCK];
     char internal_buffer[BLOCK_SIZE];
-    int this_time_size = 0, last_time_size = 0;
+    int one_time_size = 0, total_size = 0;
 
     // get the right cluster to start with
     for (int i = 0; i < file->f_position / BLOCK_SIZE; i++)
@@ -230,19 +230,19 @@ int fat32_read(struct file *file, void *buffer, unsigned int length)
         read_block(get_cluster_block_index(current_cluster), internal_buffer);
 
         // check if it's over 512 bytes
-        this_time_size = (remaining_length < BLOCK_SIZE) ? remaining_length : BLOCK_SIZE;
+        one_time_size = (remaining_length < BLOCK_SIZE) ? remaining_length : BLOCK_SIZE;
         // check if it exceeds the boundary of the file
-        this_time_size = (file->f_position + this_time_size > file->dentry->vnode->f_size) 
+        one_time_size = (file->f_position + one_time_size > file->dentry->vnode->f_size) 
                         ? (file->dentry->vnode->f_size - file->f_position) 
-                        : this_time_size;
+                        : one_time_size;
 
-        remaining_length -= this_time_size;
+        remaining_length -= one_time_size;
 
-        for (int i = 0; i < this_time_size; i++)
-            ((char *)buffer + last_time_size)[i] = internal_buffer[file->f_position % BLOCK_SIZE + i];
+        for (int i = 0; i < one_time_size; i++)
+            ((char *)buffer + total_size)[i] = internal_buffer[file->f_position % BLOCK_SIZE + i];
 
-        file->f_position += this_time_size;
-        last_time_size = this_time_size;
+        file->f_position += one_time_size;
+        total_size += one_time_size;
 
         if (remaining_length > 0)
         {
@@ -251,5 +251,5 @@ int fat32_read(struct file *file, void *buffer, unsigned int length)
         }
     }
 
-    return file->f_position - f_position_backup;
+    return total_size;
 }
