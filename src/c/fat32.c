@@ -199,8 +199,9 @@ int fat32_load_dentry(struct dentry *parent, char *component_name)
         struct fat32_internal *child_internal = (struct fat32_internal *)km_allocation(sizeof(struct fat32_internal));
         child_internal->first_cluster = ((sector_dentries[i].cluster_high) << 16) | (sector_dentries[i].cluster_low);
         child_internal->dentry_cluster = dentry_cluster;
-        child_internal->size = sector_dentries[i].size;
+
         dentry->vnode->internal = child_internal;
+        dentry->vnode->f_size = sector_dentries[i].size;
     }
 
     return found;
@@ -208,23 +209,40 @@ int fat32_load_dentry(struct dentry *parent, char *component_name)
 
 int fat32_read(struct file *file, void *buffer, unsigned int length)
 {
-    struct fat32_internal* internal = (struct fat32_internal*)file->dentry->vnode->internal;
+    struct fat32_internal *internal = (struct fat32_internal *)file->dentry->vnode->internal;
     unsigned long long f_position_backup = file->f_position;
     unsigned long long current_cluster = internal->first_cluster;
     int remaining_length = length;
     int fat[FAT_ENTRY_PER_BLOCK];
     char internal_buffer[BLOCK_SIZE];
+    int this_time_size = 0, last_time_size = 0;
 
+    // get the right cluster to start with
+    for (int i = 0; i < file->f_position / BLOCK_SIZE; i++)
+    {
+        read_block(get_fat_block_index(current_cluster), fat);
+        current_cluster = fat[current_cluster % FAT_ENTRY_PER_BLOCK];
+    }
+
+    // each iteration reads in 512 bytes
     while (remaining_length > 0 && current_cluster != END_OF_CLUSTER)
     {
         read_block(get_cluster_block_index(current_cluster), internal_buffer);
-        int read_size = (remaining_length < BLOCK_SIZE) ? remaining_length : BLOCK_SIZE;
-        remaining_length -= read_size;
 
-        for (int i = 0; i < read_size; i++)
-            ((char *)buffer)[file->f_position + i] = internal_buffer[i];
+        // check if it's over 512 bytes
+        this_time_size = (remaining_length < BLOCK_SIZE) ? remaining_length : BLOCK_SIZE;
+        // check if it exceeds the boundary of the file
+        this_time_size = (file->f_position + this_time_size > file->dentry->vnode->f_size) 
+                        ? (file->dentry->vnode->f_size - file->f_position) 
+                        : this_time_size;
 
-        file->f_position += read_size;
+        remaining_length -= this_time_size;
+
+        for (int i = 0; i < this_time_size; i++)
+            ((char *)buffer + last_time_size)[i] = internal_buffer[file->f_position % BLOCK_SIZE + i];
+
+        file->f_position += this_time_size;
+        last_time_size = this_time_size;
 
         if (remaining_length > 0)
         {

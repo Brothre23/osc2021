@@ -52,13 +52,14 @@ int main()
     vfs_make_directory(mounting_point);
     vfs_mount("sdcard", mounting_point, "fat32");
 
-    struct file *test = vfs_open("/sdp1/APPLE.SH", 0);
+    struct file *test = vfs_open("/sdp1/TEST.TXT", 0);
     printf("%x %s\n", test, test->dentry->name);
-    char buffer[512];
-    strset(buffer, 0, 512);
+    char buffer[1024];
+    strset(buffer, 0, 1024);
 
-    vfs_read(test, buffer, 64);
-    printf("%s\n", buffer);
+    int size_1 = vfs_read(test, buffer, 520);
+    int size_2 = vfs_read(test, buffer + 520, 200);
+    printf("%s\n%d\n%d\n", buffer, size_1, size_2);
 
     // thread_create(vfs_test);
 

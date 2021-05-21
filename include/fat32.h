@@ -97,7 +97,6 @@ struct fat32_internal
 {
     unsigned int first_cluster;
     unsigned int dentry_cluster;
-    unsigned int size;
 };
 
 #endif
