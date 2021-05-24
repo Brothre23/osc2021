@@ -54,12 +54,21 @@ int main()
 
     struct file *test = vfs_open("/sdp1/TEST.TXT", 0);
     printf("%x %s\n", test, test->dentry->name);
-    char buffer[1024];
-    strset(buffer, 0, 1024);
+    char read_buffer[1024];
+    strset(read_buffer, 0, 1024);
 
-    int size_1 = vfs_read(test, buffer, 520);
-    int size_2 = vfs_read(test, buffer + 520, 200);
-    printf("%s\n%d\n%d\n", buffer, size_1, size_2);
+    char write_buffer[] = "MEOWMEOW WRITE TEST";
+    int write_size = vfs_write(test, write_buffer, strlen(write_buffer));
+    printf("%d\n", write_size);
+
+    int read_size = vfs_read(test, read_buffer, 520);
+    printf("%s\n%d\n", read_buffer, read_size);
+
+    vfs_close(test);
+
+    // int size_1 = vfs_read(test, buffer, 520);
+    // int size_2 = vfs_read(test, buffer + 520, 200);
+    // printf("%s\n%d\n%d\n", buffer, size_1, size_2);
 
     // thread_create(vfs_test);
 

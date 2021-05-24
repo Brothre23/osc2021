@@ -104,7 +104,7 @@ int fat32_register()
 
     fat32_f_ops = (struct file_operations *)km_allocation(sizeof(struct file_operations));
     fat32_f_ops->read = fat32_read;
-    fat32_f_ops->write = NULL;
+    fat32_f_ops->write = fat32_write;
 
     return 0;
 }
@@ -211,7 +211,7 @@ int fat32_read(struct file *file, void *buffer, unsigned int length)
 {
     struct fat32_internal *internal = (struct fat32_internal *)file->dentry->vnode->internal;
     unsigned long long current_cluster = internal->first_cluster;
-    int remaining_length = length;
+    unsigned int remaining_length = length;
     int fat[FAT_ENTRY_PER_BLOCK];
     char internal_buffer[BLOCK_SIZE];
     int one_time_size = 0, total_size = 0;
@@ -228,8 +228,10 @@ int fat32_read(struct file *file, void *buffer, unsigned int length)
     {
         read_block(get_cluster_block_index(current_cluster), internal_buffer);
 
-        // check if it's over 512 bytes
-        one_time_size = (remaining_length < BLOCK_SIZE) ? remaining_length : BLOCK_SIZE;
+        // check if it exceeds the current block
+        one_time_size = (remaining_length < BLOCK_SIZE - file->f_position % BLOCK_SIZE) 
+                        ? remaining_length 
+                        : BLOCK_SIZE - file->f_position % BLOCK_SIZE;
         // check if it exceeds the boundary of the file
         one_time_size = (file->f_position + one_time_size > file->dentry->vnode->f_size) 
                         ? (file->dentry->vnode->f_size - file->f_position) 
@@ -248,6 +250,91 @@ int fat32_read(struct file *file, void *buffer, unsigned int length)
             read_block(get_fat_block_index(current_cluster), fat);
             current_cluster = fat[current_cluster % FAT_ENTRY_PER_BLOCK];
         }
+    }
+
+    return total_size;
+}
+
+int fat32_write(struct file *file, void *buffer, unsigned int length)
+{
+    struct fat32_internal *internal = (struct fat32_internal*)file->dentry->vnode->internal;
+    unsigned long long current_cluster = internal->first_cluster;
+    unsigned int remaining_length = length;
+    int fat[FAT_ENTRY_PER_BLOCK];
+    char internal_buffer[BLOCK_SIZE];
+    int total_size = 0;
+
+    // get the right cluster to start with
+    for (int i = 0; i < file->f_position / BLOCK_SIZE; i++)
+    {
+        read_block(get_fat_block_index(current_cluster), fat);
+        current_cluster = fat[current_cluster % FAT_ENTRY_PER_BLOCK];
+    }
+
+    // write into the first block
+    int f_position_offset = file->f_position % BLOCK_SIZE;
+    read_block(get_cluster_block_index(current_cluster), internal_buffer);
+    int one_time_size = (BLOCK_SIZE - f_position_offset) < remaining_length 
+                        ? (BLOCK_SIZE - f_position_offset) 
+                        : remaining_length;
+    // for example, if the f_position is now 520,
+    // then the frontmost 8 bytes are left unchanged
+    for (int i = 0; i < one_time_size; i++)
+        internal_buffer[f_position_offset + i] = ((char*)buffer)[i];
+
+    write_block(get_cluster_block_index(current_cluster), internal_buffer);
+    file->f_position += one_time_size;
+    total_size += one_time_size;
+
+    remaining_length -= one_time_size;
+    while (remaining_length > 0 && current_cluster != END_OF_CLUSTER)
+    {
+        // handle the final block seperately
+        if (remaining_length < BLOCK_SIZE)
+        {
+            read_block(get_cluster_block_index(current_cluster), internal_buffer);
+            for (int i = 0; i < remaining_length; i++)
+                internal_buffer[i] = ((char*)buffer + total_size)[i];
+            write_block(get_cluster_block_index(current_cluster), internal_buffer);
+            file->f_position += remaining_length;
+            total_size += remaining_length;
+            remaining_length = 0;
+        }
+        else
+        {
+            write_block(get_cluster_block_index(current_cluster), buffer + total_size);
+            file->f_position += BLOCK_SIZE;
+            total_size += BLOCK_SIZE;
+            remaining_length -= BLOCK_SIZE;
+        }
+
+        read_block(get_fat_block_index(current_cluster), fat);
+        current_cluster = fat[current_cluster % FAT_ENTRY_PER_BLOCK];
+    }
+
+    if (file->f_position > file->dentry->vnode->f_size) 
+    {
+        file->dentry->vnode->f_size = file->f_position;
+
+        // update directory entry
+        unsigned char sector[BLOCK_SIZE];
+        read_block(internal->dentry_cluster, sector);
+        struct fat32_dentry *sector_dentries = (struct fat32_dentry *)sector;
+        unsigned int first_cluster;
+        for (int i = 0; sector_dentries[i].name[0] != '\0'; i++)
+        {
+            // special value
+            if (sector_dentries[i].name[0] == 0xE5)
+                continue;
+            // find target file directory entry
+            first_cluster = (sector_dentries[i].cluster_high) << 16 | sector_dentries[i].cluster_low;
+            if (first_cluster == internal->first_cluster)
+            {
+                sector_dentries[i].size = (unsigned int)file->f_position;
+                break;
+            }
+        }
+        write_block(internal->dentry_cluster, sector);
     }
 
     return total_size;
