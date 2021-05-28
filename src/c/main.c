@@ -48,7 +48,7 @@ int main()
     //     vfs_close(cpio_file);
     // }
 
-    char mounting_point[8] = "/sdp1";
+    char mounting_point[] = "/sdp1";
     vfs_make_directory(mounting_point);
     vfs_mount("sdcard", mounting_point, "fat32");
 
@@ -60,10 +60,12 @@ int main()
     char write_buffer[] = "MEOWMEOW WRITE TEST";
     int write_size = vfs_write(test, write_buffer, strlen(write_buffer));
     printf("%d\n", write_size);
+    vfs_close(test);
 
-    int read_size = vfs_read(test, read_buffer, 520);
-    printf("%s\n%d\n", read_buffer, read_size);
-
+    test = vfs_open("/sdp1/TEST.TXT", 0);
+    int read_size_1 = vfs_read(test, read_buffer, 520);
+    int read_size_2 = vfs_read(test, read_buffer + 520, 200);
+    printf("%s\n%d %d\n", read_buffer, read_size_1, read_size_2);
     vfs_close(test);
 
     // int size_1 = vfs_read(test, buffer, 520);
