@@ -1,6 +1,7 @@
 #ifndef MM_H
 #define MM_H
 
+#define VA_START                0xFFFF000000000000
 #define MEMORY_START            0xA0000
 
 #define PAGE_SHIFT              12

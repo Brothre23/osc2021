@@ -34,7 +34,7 @@ clean:
 	cd initramfs && make clean
 
 run: 			all
-	$(EMULATOR) -M raspi3 -kernel kernel8.img -display none -serial null -serial stdio -initrd initramfs.cpio -drive if=sd,file=sfn_nctuos.img,format=raw
+	$(EMULATOR) -M raspi3 -kernel kernel8.img -display none -serial null -serial stdio -initrd initramfs.cpio
 
 deploy: 		all
 	cp ./kernel8.img /run/media/brothre23/4DFF-0A36/

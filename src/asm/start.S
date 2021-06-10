@@ -12,6 +12,9 @@ _start:
     mov     sp, x0
 
 el2_entry:
+	ldr	    x1, =SCTLR_VALUE_MMU_DISABLED
+	msr	    sctlr_el1, x1	
+
     ldr     x1, =HCR_EL2_VALUE                  // set EL1 aarch
     msr     hcr_el2, x1
 
@@ -35,17 +38,6 @@ el1_entry:
     ldr     x0, =exception_vector_table         // set up el1 exception table
     msr     vbar_el1, x0
 
-/*
-    ldr     x0, =SPSR_EL1_VALUE
-    msr     spsr_el1, x0
-    adr     x0, el0_entry
-    msr     elr_el1, x0
-    mov     x0, 0x40000
-    msr     sp_el0, x0
-    eret
-
-el0_entry:
-*/
     // clear bss
     ldr     x1, =_bss_start
     ldr     w2, =_bss_size
